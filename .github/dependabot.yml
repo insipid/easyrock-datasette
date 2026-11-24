@@ -1,0 +1,11 @@
+# Weekly PRs to bump the pinned action SHAs (keeps the "# vX" comments in sync).
+# Cooldown: only propose releases that have been public for a week, so a
+# hijacked release is likely to be caught and pulled before it reaches us.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

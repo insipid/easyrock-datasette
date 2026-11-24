@@ -29,7 +29,7 @@ from bs4 import BeautifulSoup
 
 BASE = "https://onlineradiobox.com/it/easyrock/playlist/"
 DAYS_DIR = Path(__file__).resolve().parent / "data" / "days"
-ROME = ZoneInfo("Europe/Rome")
+PADOVA = ZoneInfo("Europe/Rome")  # station is in Padova; IANA has no Padova zone
 UA = "Mozilla/5.0 (compatible; easyrock-catalog; personal archive, ~1 run/day)"
 
 TIME_RE = re.compile(r"\d{2}:\d{2}")
@@ -49,7 +49,7 @@ def fetch(n: int) -> str:
 def page_date(soup: BeautifulSoup, today: date) -> date:
     """Date of the displayed day, read from the unlinked day tab.
 
-    Not derived from now() - n: Actions runs on UTC, the station on Rome time,
+    Not derived from now() - n: Actions runs on UTC, the station on Padova (Italian) time,
     and the site's idea of "today" is what counts.
     """
     found = set()
@@ -135,7 +135,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="print, don't write")
     args = ap.parse_args()
 
-    today = datetime.now(ROME).date()
+    today = datetime.now(PADOVA).date()
     sources = [(args.html.name, lambda: args.html.read_text())] if args.html else [
         (f"page {n}", lambda n=n: fetch(n)) for n in args.pages
     ]

@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
 <title>Radio Easy Rock · playlist archive</title>
 <style>
 :root {
@@ -139,7 +142,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
 </div>
 <div id="tip" role="tooltip"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-wasm.js"></script>
+<script src="vendor/sql.js-1.13.0/sql-wasm.js"></script>
 <script>
 "use strict";
 const DB_URL = "playlist.db";
@@ -538,7 +541,7 @@ addEventListener("hashchange", route);
 (async () => {
   try {
     const [SQL, buf] = await Promise.all([
-      initSqlJs({ locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/${f}` }),
+      initSqlJs({ locateFile: f => `vendor/sql.js-1.13.0/${f}` }),
       fetch(DB_URL).then(r => { if (!r.ok) throw new Error(`${DB_URL}: HTTP ${r.status}`); return r.arrayBuffer(); }),
     ]);
     db = new SQL.Database(new Uint8Array(buf));

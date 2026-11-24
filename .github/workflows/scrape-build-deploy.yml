@@ -1,0 +1,117 @@
+# Daily: scrape onlineradiobox → commit data/days/*.json → build playlist.db → publish to Pages.
+# On push to trunk (code, overrides, dashboard): rebuild + publish only, no scrape.
+name: Scrape, build, deploy
+
+on:
+  schedule:
+    - cron: "17 4 * * *" # 05:17 Padova (CET); finished days are on pages 1-6 by then
+  workflow_dispatch:
+  push:
+    branches: [trunk]
+    paths-ignore: ["data/**"] # data-only pushes wait for the next scheduled build
+
+permissions: {} # nothing by default; each job asks for exactly what it needs
+
+concurrency:
+  group: scrape-build-deploy
+  cancel-in-progress: false # never cut a data commit or deploy off half-way
+
+env:
+  UV_VERSION: "0.11.32"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  scrape:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # to commit data/days/*.json
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: trunk
+          persist-credentials: false # scrape.py runs with no git credentials on disk
+
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: false # no cache to poison; installs are tiny
+
+      - name: Scrape
+        id: scrape
+        # scrape.py exits 1 if any page failed, but still writes the pages that worked.
+        # Commit those first, then fail the job so the failure is visible.
+        run: |
+          set +e
+          uv run --locked --python "$PYTHON_VERSION" --script scrape.py
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Commit new data
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # only this step can push
+        run: |
+          git config user.name "drew"
+          git config user.email "drewamato@gmail.com"
+          git add data/days
+          if git diff --cached --quiet; then
+            echo "No new plays."
+          else
+            git commit -m "Update playlist data $(date -u +%Y-%m-%d)"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:trunk
+          fi
+
+      - name: Fail if any page failed to scrape
+        if: steps.scrape.outputs.status != '0'
+        env:
+          STATUS: ${{ steps.scrape.outputs.status }}
+        run: |
+          echo "::error::scrape.py exited $STATUS; see the Scrape step log"
+          exit 1
+
+  build:
+    needs: scrape
+    if: ${{ !cancelled() }} # build from whatever data made it in, even after a partial scrape
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: trunk # includes the commit the scrape job just pushed
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: false
+
+      - name: Build playlist.db
+        run: uv run --locked --python "$PYTHON_VERSION" --script build.py
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r index.html playlist.db metadata.yml vendor _site/
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
