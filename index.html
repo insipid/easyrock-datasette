@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radio Easy Rock · playlist archive</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --wash: #f0efec;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --accent: #2a78d6; --accent-ink: #1c5cab;
+  --seq-0: #f0efec;
+  --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5;
+  --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --wash: #262624;
+    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-ink: #86b6ef;
+    --seq-0: #262624;
+    /* dark: low counts recede toward the surface, high counts glow */
+    --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf;
+    --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; }
+
+header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; margin-bottom: 16px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-2); letter-spacing: 0; margin-top: 2px; }
+.search { position: relative; flex: 0 1 320px; min-width: 220px; }
+.search input { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--ring);
+  background: var(--surface); color: var(--ink); font: inherit; }
+.search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.results { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); background: var(--surface);
+  border: 1px solid var(--ring); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); overflow: hidden; }
+.results a { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; }
+.results a:hover, .results a.sel { background: var(--wash); text-decoration: none; color: var(--ink); }
+.results .kind { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.results .none { padding: 10px 12px; color: var(--muted); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--wash); border-radius: 12px; width: fit-content; margin-bottom: 6px; }
+.tabs a { padding: 6px 12px; border-radius: 9px; font-size: 14px; color: var(--ink-2); }
+.tabs a:hover { text-decoration: none; color: var(--ink); }
+.tabs a.on { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--ring); }
+.range { color: var(--ink-2); font-size: 13px; margin: 0 0 14px 4px; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 12px 16px; display: block; }
+a.tile:hover { text-decoration: none; color: inherit; box-shadow: 0 0 0 1px var(--accent); border-color: var(--accent); }
+a.tile span::after { content: " →"; color: var(--muted); }
+a.tile:hover span::after { color: var(--accent-ink); }
+.tile b { display: block; font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.15; }
+.tile b.small { font-size: 17px; letter-spacing: 0; line-height: 1.6; }
+.tile span { color: var(--ink-2); font-size: 13px; }
+
+.grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 780px) { .grid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: span 2; } }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 14px 16px 12px; min-width: 0; }
+.card h2 { font-size: 15px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h2 small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+
+/* bar table: rank · name · bar · value */
+.bars { list-style: none; margin: 0; padding: 0; }
+.bars li { display: grid; grid-template-columns: 22px minmax(0,1fr) 36px; column-gap: 8px; align-items: center; padding: 4px 0; }
+.bars .rk { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+.bars .nm { min-width: 0; }
+.line { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.by { color: var(--ink-2); font-size: 13px; }
+.by a { color: inherit; }
+.bars .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px; }
+.bars .track { grid-column: 2 / 3; height: 6px; margin-top: 3px; }
+.bars .fill { height: 6px; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+
+.compact { list-style: none; margin: 0; padding: 0; }
+.compact li { padding: 4px 0; border-top: 1px solid var(--grid); }
+.compact li:first-child { border-top: 0; }
+@media (min-width: 780px) { .compact.two { columns: 2; column-gap: 28px; } .compact.two li { break-inside: avoid; } .compact.two li:nth-child(6) { border-top: 0; } }
+.card h2 small a { text-decoration: underline; text-underline-offset: 2px; }
+.more { margin-top: 10px; padding: 7px 14px; border-radius: 9px; border: 1px solid var(--ring); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.more:hover { border-color: var(--accent); }
+.count { color: var(--ink-2); font-size: 13px; margin: 0 0 8px; }
+
+/* heatmap */
+.heat { display: grid; grid-template-columns: 34px repeat(24, minmax(0,1fr)); gap: 2px; font-size: 11px; color: var(--muted); }
+.heat .c { aspect-ratio: 1 / 1.15; border-radius: 3px; background: var(--seq-0); }
+.heat .rl { align-self: center; }
+.heat .hl { text-align: center; }
+.legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
+
+svg { display: block; overflow: visible; }
+svg text { fill: var(--muted); font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; }
+.axis line, .axis path { stroke: var(--axis); }
+.gridline { stroke: var(--grid); }
+
+.back { display: inline-block; margin-bottom: 10px; color: var(--ink-2); font-size: 14px; }
+.hero h1 { font-size: 26px; }
+.hero .by { font-size: 16px; color: var(--ink-2); margin-top: 2px; }
+.ext { font-size: 13px; color: var(--ink-2); }
+.ext a { text-decoration: underline; text-underline-offset: 2px; }
+
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 4px 6px; border-bottom: 1px solid var(--axis); cursor: pointer; user-select: none; white-space: nowrap; }
+table.t th.num, table.t td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.t td { padding: 6px; border-bottom: 1px solid var(--grid); }
+table.t th[aria-sort]::after { content: " ↓"; } table.t th[aria-sort="ascending"]::after { content: " ↑"; }
+
+#tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--surface);
+  padding: 6px 9px; border-radius: 8px; font-size: 12.5px; line-height: 1.35; max-width: 260px; opacity: 0; transition: opacity .08s; }
+#tip.on { opacity: 1; }
+footer { margin-top: 24px; color: var(--muted); font-size: 12.5px; }
+footer a { text-decoration: underline; text-underline-offset: 2px; }
+.loading { padding: 60px 0; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><a href="#">Radio Easy Rock</a><small id="sub">Loading the archive…</small></h1>
+    <div class="search">
+      <input id="q" type="search" placeholder="Search artists and songs" autocomplete="off" aria-label="Search artists and songs">
+      <div class="results" id="results" hidden></div>
+    </div>
+  </header>
+  <main id="app"><div class="loading">Loading playlist.db…</div></main>
+  <footer id="foot"></footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/sql-wasm.js"></script>
+<script>
+"use strict";
+const DB_URL = "playlist.db";
+let db, D, A, NEW_FROM, lastPeriod = "week";
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => Number(n).toLocaleString("en-GB");
+function q(sql, params = {}) {
+  const st = db.prepare(sql); st.bind(params);
+  const out = []; while (st.step()) out.push(st.getAsObject()); st.free(); return out;
+}
+const one = (sql, p) => q(sql, p)[0] || {};
+
+const s2d = s => new Date(s + "T00:00:00Z");
+const d2s = d => d.toISOString().slice(0, 10);
+const addDays = (s, n) => d2s(new Date(s2d(s).getTime() + n * 864e5));
+const daysBetween = (a, b) => Math.round((s2d(b) - s2d(a)) / 864e5);
+const dFmt = (s, o = { day: "numeric", month: "short" }) => s2d(s).toLocaleDateString("en-GB", { timeZone: "UTC", ...o });
+const when = ts => `${dFmt(ts.slice(0, 10), { weekday: "short", day: "numeric", month: "short" })}, ${ts.slice(11)}`;
+const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const artistHref = a => "#artist=" + encodeURIComponent(a);
+const songHref = id => "#song=" + id;
+function liteHref(path = "") {
+  const base = new URL(".", location.href).href;
+  return "https://lite.datasette.io/?url=" + encodeURIComponent(base + DB_URL) +
+    "&metadata=" + encodeURIComponent(base + "metadata.yml") + "#/playlist" + path;
+}
+
+// ---------- periods (anchored to the newest data, not the browser clock) ----------
+function periods() {
+  const mon = addDays(D, -((s2d(D).getUTCDay() + 6) % 7));
+  return {
+    today:    { label: "Today",      s: D, e: D },
+    week:     { label: "This week",  s: mon, e: D },
+    lastweek: { label: "Last week",  s: addDays(mon, -7), e: addDays(mon, -1) },
+    month:    { label: "This month", s: D.slice(0, 8) + "01", e: D },
+    year:     { label: "This year",  s: D.slice(0, 5) + "01-01", e: D },
+    all:      { label: "All time",   s: A, e: D },
+  };
+}
+function rangeText(p) {
+  const s = p.s < A ? A : p.s;
+  const r = s === p.e ? dFmt(s, { weekday: "long", day: "numeric", month: "long" })
+                      : `${dFmt(s)} – ${dFmt(p.e, { day: "numeric", month: "short", year: "numeric" })}`;
+  return p.s < A ? `${r} · archive starts ${dFmt(A)}` : r;
+}
+
+// ---------- components ----------
+// one line per entry: "Title – Artist" (artist smaller), bar underneath
+function bars(rows, { name, by, href, empty = "Nothing here yet." }) {
+  if (!rows.length) return `<div class="empty">${empty}</div>`;
+  const max = Math.max(...rows.map(r => r.n));
+  return `<ol class="bars">${rows.map((r, i) => `
+    <li><span class="rk">${i + 1}</span>
+      <span class="nm line"><a href="${href(r)}">${esc(name(r))}</a>${by ? `<span class="by"> – ${by(r)}</span>` : ""}</span>
+      <span class="val">${fmt(r.n)}</span>
+      <span class="track" data-tip="${esc(name(r))}: ${fmt(r.n)} play${r.n === 1 ? "" : "s"}"><div class="fill" style="width:${(r.n / max * 100).toFixed(1)}%"></div></span>
+    </li>`).join("")}</ol>`;
+}
+const artistLink = r => `<a href="${artistHref(r.artist)}">${esc(r.artist)}</a>`;
+const songLine = r => `<span class="line"><a href="${songHref(r.id)}">${esc(r.title)}</a><span class="by"> – ${artistLink(r)}</span></span>`;
+const link = o => "#" + new URLSearchParams(o).toString();
+
+// sortable table over a JS array; renders 200 rows at a time
+function dataTable(el, cols, rows, { sort, desc = true, page = 200 } = {}) {
+  let key = sort ?? cols[0].key, dir = desc ? -1 : 1, shown = page;
+  const draw = () => {
+    const sorted = [...rows].sort((a, b) => {
+      const va = a[key], vb = b[key];
+      return (typeof va === "number" ? va - vb : String(va).localeCompare(String(vb))) * dir;
+    });
+    el.innerHTML = `<table class="t"><thead><tr>${cols.map(c =>
+        `<th data-k="${c.key}" class="${c.num ? "num" : ""}"${c.key === key ? ` aria-sort="${dir < 0 ? "descending" : "ascending"}"` : ""}>${c.label}</th>`).join("")}</tr></thead>
+      <tbody>${sorted.slice(0, shown).map(r => `<tr>${cols.map(c => `<td class="${c.num ? "num" : ""}">${c.html ? c.html(r) : esc(r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      ${sorted.length > shown ? `<button class="more">Show more (${fmt(sorted.length - shown)} left)</button>` : ""}`;
+    el.querySelectorAll("th").forEach(th => th.onclick = () => {
+      const k = th.dataset.k; dir = k === key ? -dir : (cols.find(c => c.key === k).num ? -1 : 1); key = k; draw();
+    });
+    const m = el.querySelector(".more"); if (m) m.onclick = () => { shown += page; draw(); };
+  };
+  draw();
+}
+const tabsFor = (P, cur, params) => `<nav class="tabs">${Object.entries(P).map(([k, v]) =>
+  `<a href="${link({ ...params, p: k })}" class="${k === cur ? "on" : ""}">${v.label}</a>`).join("")}</nav>`;
+
+function heatmap(cells) {
+  // average song plays per hour slot, over the days that slot has data for:
+  // two Tuesdays in range shouldn't make Tuesday look twice as busy
+  const grid = Array.from({ length: 7 }, () => Array(24).fill(null));
+  cells.forEach(c => grid[c.weekday - 1][c.hour] = { n: c.n / c.days, days: c.days });
+  // scale from the quietest slot to the busiest: every hour has 9-18 songs,
+  // so a 0-based scale would paint everything the same dark blue
+  const vals = cells.filter(c => c.days).map(c => c.n / c.days);
+  const max = Math.max(1, ...vals), min = Math.min(max - 1, ...vals);
+  const step = n => Math.min(7, 1 + Math.floor(((n - min) / (max - min)) * 7 * 0.9999));
+  const avg = n => n.toFixed(1).replace(/\.0$/, "");
+  let h = `<div class="heat" role="img" aria-label="Song plays by weekday and hour"><span></span>`;
+  for (let hr = 0; hr < 24; hr++) h += `<span class="hl">${hr % 3 === 0 ? hr : ""}</span>`;
+  grid.forEach((row, wd) => {
+    h += `<span class="rl">${WD[wd]}</span>`;
+    row.forEach((c, hr) => {
+      const slot = `${WD[wd]} ${String(hr).padStart(2, "0")}:00–${String(hr).padStart(2, "0")}:59`;
+      h += c ? `<span class="c" style="background:var(--seq-${step(c.n)})" data-tip="${slot}<br><b>${avg(c.n)}</b> song plays on average${c.days > 1 ? ` (${c.days} days)` : ""}"></span>`
+             : `<span class="c" data-tip="${slot}<br>no data yet"></span>`;
+    });
+  });
+  h += `</div><div class="legend">${avg(min)}`;
+  for (let i = 1; i <= 7; i++) h += `<i style="background:var(--seq-${i})"></i>`;
+  return h + ` ${avg(max)} per hour <i style="background:var(--seq-0);margin-left:10px"></i> no data yet</div>`;
+}
+
+// SVG column chart (daily plays / hourly plays). Single series: no legend, title names it.
+const cardW = (half = false) => { const w = $("#app").clientWidth; return Math.max(240, (half && w >= 780 ? (w - 12) / 2 : w) - 34); };
+function columns(data, { height = 140, labelEvery, label, tip, half = false }) {
+  const W = cardW(half), H = height, padL = 28, padB = 18;
+  const max = Math.max(1, ...data.map(d => d.n));
+  const ticks = niceTicks(max);
+  const bw = (W - padL) / data.length, gap = data.length > 60 ? 1 : 2, r = Math.min(4, (bw - gap) / 2);
+  const y = v => (H - padB) - (v / ticks.at(-1)) * (H - padB - 6);
+  let s = `<svg width="${W}" height="${H}" role="img">`;
+  ticks.forEach(t => s += `<line class="gridline" x1="${padL}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text x="${padL - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`);
+  data.forEach((d, i) => {
+    const x = padL + i * bw + gap / 2, w = Math.max(1, bw - gap), top = y(d.n), base = H - padB;
+    if (d.n > 0) {
+      const rr = Math.min(r, base - top);
+      s += `<path fill="var(--accent)" d="M${x},${base}V${top + rr}q0,-${rr} ${rr},-${rr}h${w - 2 * rr}q${rr},0 ${rr},${rr}V${base}Z"/>`;
+    }
+    s += `<rect x="${padL + i * bw}" y="0" width="${bw}" height="${base}" fill="transparent" data-tip="${esc(tip(d))}"/>`;
+    if (labelEvery(d, i)) s += `<text x="${x + w / 2}" y="${H - 4}" text-anchor="middle">${esc(label(d))}</text>`;
+  });
+  return s + `<line x1="${padL}" x2="${W}" y1="${H - padB}" y2="${H - padB}" stroke="var(--axis)"/></svg>`;
+}
+function niceTicks(max) {
+  const raw = max / 3, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 5, 10].map(m => m * mag).find(s => s >= raw) || 1;
+  const out = []; for (let v = 0; v <= max + step - 1e-9; v += step) out.push(Math.round(v)); return out.length > 1 ? out : [0, 1];
+}
+
+// every play of one song: x = day, y = time of day
+function dotStrip(plays) {
+  const W = cardW(), H = 220, padL = 40, padR = 24, padB = 20, padT = 8;
+  const n = Math.max(1, daysBetween(A, D));
+  const x = s => padL + 6 + (daysBetween(A, s) / n) * (W - padL - padR - 6);
+  const y = m => padT + (m / 1440) * (H - padB - padT);
+  let s = `<svg width="${W}" height="${H}" role="img" aria-label="Every play, by date and time of day">`;
+  [0, 6, 12, 18, 24].forEach(h => s += `<line class="gridline" x1="${padL}" x2="${W}" y1="${y(h * 60)}" y2="${y(h * 60)}"/><text x="${padL - 6}" y="${y(h * 60) + 4}" text-anchor="end">${String(h).padStart(2, "0")}:00</text>`);
+  const every = Math.ceil((n + 1) / Math.max(2, Math.floor((W - padL) / 70)));
+  for (let i = 0; i <= n; i += every) { const ds = addDays(A, i); s += `<text x="${x(ds)}" y="${H - 4}" text-anchor="middle">${dFmt(ds)}</text>`; }
+  plays.forEach(p => {
+    const m = +p.played_at.slice(11, 13) * 60 + +p.played_at.slice(14, 16);
+    s += `<circle cx="${x(p.played_at.slice(0, 10))}" cy="${y(m)}" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+    s += `<circle cx="${x(p.played_at.slice(0, 10))}" cy="${y(m)}" r="11" fill="transparent" data-tip="${esc(when(p.played_at))}"/>`;
+  });
+  return s + `</svg>`;
+}
+
+function sortable(table) {
+  table.querySelectorAll("th").forEach((th, col) => th.addEventListener("click", () => {
+    const asc = th.getAttribute("aria-sort") === "descending";
+    table.querySelectorAll("th").forEach(t => t.removeAttribute("aria-sort"));
+    th.setAttribute("aria-sort", asc ? "ascending" : "descending");
+    const rows = [...table.tBodies[0].rows], num = th.classList.contains("num");
+    rows.sort((a, b) => {
+      const va = a.cells[col].dataset.v ?? a.cells[col].textContent, vb = b.cells[col].dataset.v ?? b.cells[col].textContent;
+      const c = num ? va - vb : va.localeCompare(vb);
+      return asc ? c : -c;
+    });
+    rows.forEach(r => table.tBodies[0].append(r));
+  }));
+}
+
+// ---------- views ----------
+const NEWQ = `from (select song_id, min(played_at) first from plays where kind = 'song' group by song_id) f
+              join songs s on s.id = f.song_id
+              where substr(f.first, 1, 10) between :s and :e and substr(f.first, 1, 10) >= :t`;
+function pick(pk) { const P = periods(); lastPeriod = pk in P ? pk : lastPeriod; return [P, P[lastPeriod]]; }
+
+function viewHome(pk) {
+  const [P, p] = pick(pk);
+  const prm = { ":s": p.s, ":e": p.e };
+  const W = "p.date between :s and :e";
+  const t = one(`select count(*) plays, count(distinct p.song_id) songs, count(distinct s.artist) artists
+                 from plays p join songs s on s.id = p.song_id where ${W}`, prm);
+  const ads = one(`select count(*) n from plays p where kind = 'ad' and ${W}`, prm).n;
+  const topSongs = q(`select s.id, s.artist, s.title, count(*) n from plays p join songs s on s.id = p.song_id
+                      where ${W} group by s.id order by n desc, max(p.played_at) desc limit 10`, prm);
+  const topArtists = q(`select s.artist, count(*) n from plays p join songs s on s.id = p.song_id
+                        where ${W} group by s.artist order by n desc, max(p.played_at) desc limit 10`, prm);
+  // "new" only means something once the archive has a week of history behind it
+  const nprm = { ...prm, ":t": NEW_FROM };
+  const newCount = one(`select count(*) n ${NEWQ}`, nprm).n;
+  const newRows = q(`select s.id, s.artist, s.title ${NEWQ} order by f.first desc limit 10`, nprm);
+  const heat = q(`select weekday, hour, sum(kind = 'song') n, count(distinct date) days from plays p where ${W} group by 1, 2`, prm);
+  const newNote = p.e < NEW_FROM ? `New arrivals are tracked from ${dFmt(NEW_FROM)}, a week into the archive.`
+                                 : "No songs heard for the first time in this range.";
+  const L = v => link({ view: v, p: lastPeriod });
+  const all = (v, n, what) => n > 10 ? `<small><a href="${L(v)}">all ${fmt(n)} ${what}</a></small>` : "";
+
+  $("#app").innerHTML = `
+    ${tabsFor(P, lastPeriod, {})}
+    <p class="range">${esc(rangeText(p))}</p>
+    <section class="tiles">
+      <a class="tile" href="${L("plays")}"><b>${fmt(t.plays)}</b><span>song plays</span></a>
+      <a class="tile" href="${L("songs")}"><b>${fmt(t.songs)}</b><span>different songs</span></a>
+      <a class="tile" href="${L("artists")}"><b>${fmt(t.artists)}</b><span>artists</span></a>
+      <a class="tile" href="${L("new")}"><b>${fmt(newCount)}</b><span>new songs</span></a>
+      <a class="tile" href="${L("ads")}"><b>${fmt(ads)}</b><span>ad breaks</span></a>
+    </section>
+    <section class="grid">
+      <div class="card"><h2>Top songs ${all("songs", t.songs, "songs")}</h2>${bars(topSongs, { name: r => r.title, by: artistLink, href: r => songHref(r.id) })}</div>
+      <div class="card"><h2>Top artists ${all("artists", t.artists, "artists")}</h2>${bars(topArtists, { name: r => r.artist, href: r => artistHref(r.artist) })}</div>
+      <div class="card span2"><h2>New this period ${newCount > 10 ? `<small><a href="${L("new")}">all ${fmt(newCount)} new songs</a></small>` : ""}</h2>
+        ${newRows.length ? `<ul class="compact two">${newRows.map(r => `<li>${songLine(r)}</li>`).join("")}</ul>` : `<div class="empty">${newNote}</div>`}</div>
+      <div class="card span2"><h2>When songs play <small>average plays per hour, Padova time</small></h2>${heatmap(heat)}</div>
+    </section>`;
+}
+
+// full lists behind the tiles: all plays / songs / artists / new songs / ad breaks for a period,
+// optionally narrowed to one artist or song
+function viewList(h) {
+  const [P, p] = pick(h.get("p") || lastPeriod);
+  const view = h.get("view"), artist = h.get("artist"), song = h.get("song");
+  const params = Object.fromEntries(h);
+  const prm = { ":s": p.s, ":e": p.e, ":t": NEW_FROM };
+  let W = "p.date between :s and :e", who = "";
+  if (artist) { W += " and s.artist = :a"; prm[":a"] = artist; who = ` · <a href="${artistHref(artist)}">${esc(artist)}</a>`; }
+  if (song) { W += " and s.id = :id"; prm[":id"] = +song; const sg = one(`select title, artist from songs where id = :id`, { ":id": +song });
+              who = ` · <a href="${songHref(song)}">${esc(sg.title)}</a> – ${esc(sg.artist)}`; }
+  const J = "from plays p join songs s on s.id = p.song_id";
+  const songCol = { key: "title", label: "Song", html: r => `<a href="${songHref(r.id)}">${esc(r.title)}</a>` };
+  const artistCol = { key: "artist", label: "Artist", html: artistLink };
+  const whenCol = (k, label) => ({ key: k, label, html: r => esc(when(r[k])) });
+  const V = {
+    plays: { title: "Song plays", sort: "played_at",
+      rows: () => q(`select p.played_at, s.id, s.title, s.artist ${J} where ${W}`, prm),
+      cols: [whenCol("played_at", "When"), songCol, artistCol] },
+    songs: { title: "Songs", sort: "n",
+      rows: () => q(`select s.id, s.title, s.artist, count(*) n, min(p.played_at) first, max(p.played_at) last ${J} where ${W} group by s.id`, prm),
+      cols: [songCol, artistCol, { key: "n", label: "Plays", num: true }, whenCol("first", "First"), whenCol("last", "Last")] },
+    artists: { title: "Artists", sort: "n",
+      rows: () => q(`select s.artist, count(*) n, count(distinct s.id) songs, max(p.played_at) last ${J} where ${W} group by s.artist`, prm),
+      cols: [artistCol, { key: "n", label: "Plays", num: true }, { key: "songs", label: "Songs", num: true }, whenCol("last", "Last heard")] },
+    new: { title: "New songs", sort: "first",
+      rows: () => q(`select s.id, s.title, s.artist, f.first, (select count(*) from plays where song_id = s.id) n ${NEWQ}`, prm),
+      cols: [songCol, artistCol, whenCol("first", "First heard"), { key: "n", label: "Plays since", num: true }],
+      empty: p.e < NEW_FROM ? `New arrivals are tracked from ${dFmt(NEW_FROM)}, a week into the archive.` : "" },
+    ads: { title: "Ad breaks", sort: "date",
+      rows: () => q(`select date, count(*) n, group_concat(substr(played_at, 12), '  ') times from
+                     (select * from plays p where kind = 'ad' and ${W.replace(/ and s\..*/, "")} order by played_at) group by date`, prm),
+      cols: [{ key: "date", label: "Day", html: r => esc(dFmt(r.date, { weekday: "short", day: "numeric", month: "short" })) },
+             { key: "n", label: "Breaks", num: true }, { key: "times", label: "Times (Padova)" }] },
+  }[view];
+  if (!V) return notFound("Unknown list.");
+  const rows = V.rows();
+  // narrowed to one song/artist: don't repeat it in every row
+  const cols = V.cols.filter(c => !(song && (c === songCol || c === artistCol)) && !(artist && c === artistCol));
+  $("#app").innerHTML = `
+    <a class="back" href="#p=${lastPeriod}">← Dashboard</a>
+    <div class="hero"><h1>${V.title}<span class="by" style="font-size:16px;font-weight:400">${who}</span></h1></div>
+    <div style="margin-top:12px">${tabsFor(P, lastPeriod, params)}</div>
+    <p class="range">${esc(rangeText(p))}</p>
+    <div class="card"><p class="count">${fmt(rows.length)} ${rows.length === 1 ? "row" : "rows"}</p><div id="tbl"></div></div>`;
+  if (!rows.length) $("#tbl").innerHTML = `<div class="empty">${V.empty || "Nothing in this range."}</div>`;
+  else dataTable($("#tbl"), cols, rows, { sort: V.sort, desc: true });
+}
+
+function viewArtist(name) {
+  const a = { ":a": name };
+  const t = one(`select count(*) plays, count(distinct s.id) songs, min(p.played_at) first, max(p.played_at) last
+                 from plays p join songs s on s.id = p.song_id where s.artist = :a`, a);
+  if (!t.plays) return notFound(`No plays for “${name}”.`);
+  const byDay = Object.fromEntries(q(`select p.date, count(*) n from plays p join songs s on s.id = p.song_id where s.artist = :a group by 1`, a).map(r => [r.date, r.n]));
+  const days = []; for (let ds = A; ds <= D; ds = addDays(ds, 1)) days.push({ date: ds, n: byDay[ds] || 0 });
+  const byHour = Object.fromEntries(q(`select p.hour, count(*) n from plays p join songs s on s.id = p.song_id where s.artist = :a group by 1`, a).map(r => [r.hour, r.n]));
+  const hours = Array.from({ length: 24 }, (_, h) => ({ h, n: byHour[h] || 0 }));
+  const songs = q(`select s.id, s.title, count(*) n, min(p.played_at) first, max(p.played_at) last
+                   from plays p join songs s on s.id = p.song_id where s.artist = :a group by s.id order by n desc, last desc`, a);
+  const rank = one(`select count(*) + 1 r from (select s.artist, count(*) n from plays p join songs s on s.id = p.song_id group by 1)
+                    where n > :n`, { ":n": t.plays }).r;
+  const others = q(`select distinct artist from songs where lead_artist = (select lead_artist from songs where artist = :a limit 1) and artist != :a`, a);
+  const eD = Math.max(1, Math.ceil(days.length / 10));
+
+  $("#app").innerHTML = `
+    <a class="back" href="#p=${lastPeriod}">← Dashboard</a>
+    <div class="hero"><h1>${esc(name)}</h1>
+      ${others.length ? `<div class="ext">Also credited as: ${others.map(o => `<a href="${artistHref(o.artist)}">${esc(o.artist)}</a>`).join(", ")}</div>` : ""}</div>
+    <section class="tiles" style="margin-top:14px">
+      <a class="tile" href="${link({ view: "plays", p: "all", artist: name })}"><b>${fmt(t.plays)}</b><span>plays · #${rank} all time</span></a>
+      <a class="tile" href="${link({ view: "songs", p: "all", artist: name })}"><b>${fmt(t.songs)}</b><span>songs</span></a>
+      <div class="tile"><b class="small">${esc(when(t.first))}</b><span>first heard</span></div>
+      <div class="tile"><b class="small">${esc(when(t.last))}</b><span>last heard</span></div>
+    </section>
+    <section class="grid">
+      <div class="card span2"><h2>Plays per day</h2>${columns(days, { labelEvery: (d, i) => i % eD === 0, label: d => dFmt(d.date), tip: d => `${dFmt(d.date, { weekday: "short", day: "numeric", month: "short" })}: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+      <div class="card span2"><h2>Songs <small>tap a column to sort</small></h2>
+        <table class="t" id="songs"><thead><tr><th>Song</th><th class="num" aria-sort="descending">Plays</th><th>First heard</th><th>Last heard</th></tr></thead><tbody>
+        ${songs.map(s => `<tr><td><a href="${songHref(s.id)}">${esc(s.title)}</a></td><td class="num">${s.n}</td>
+          <td data-v="${s.first}">${esc(when(s.first))}</td><td data-v="${s.last}">${esc(when(s.last))}</td></tr>`).join("")}
+        </tbody></table></div>
+      <div class="card span2"><h2>Time of day <small>Padova time</small></h2>${columns(hours, { height: 120, labelEvery: d => d.h % 3 === 0, label: d => d.h, tip: d => `${String(d.h).padStart(2, "0")}:00–${String(d.h).padStart(2, "0")}:59: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+    </section>
+    <p class="ext" style="margin-top:12px"><a href="${liteHref("/song_stats?artist=" + encodeURIComponent(name))}">Open in Datasette</a></p>`;
+  sortable($("#songs"));
+}
+
+function viewSong(id) {
+  const s = one(`select * from songs where id = :id`, { ":id": +id });
+  if (!s.id) return notFound("No such song.");
+  const st = one(`select * from song_stats where song_id = :id`, { ":id": s.id });
+  const plays = q(`select played_at, version from plays where song_id = :id order by played_at`, { ":id": s.id });
+  const rank = one(`select count(*) + 1 r from song_stats where plays > :n`, { ":n": st.plays }).r;
+  const byHour = Array.from({ length: 24 }, (_, h) => ({ h, n: 0 }));
+  plays.forEach(p => byHour[+p.played_at.slice(11, 13)].n++);
+  const versions = [...new Set(plays.map(p => p.version).filter(Boolean))];
+  const more = q(`select s.id, s.title, count(*) n from plays p join songs s on s.id = p.song_id
+                  where s.artist = :a and s.id != :id group by s.id order by n desc limit 8`, { ":a": s.artist, ":id": s.id });
+  const gap = st.avg_gap_hours == null ? "–" : st.avg_gap_hours >= 48 ? `${(st.avg_gap_hours / 24).toFixed(1)} days` : `${st.avg_gap_hours} h`;
+
+  $("#app").innerHTML = `
+    <a class="back" href="#p=${lastPeriod}">← Dashboard</a>
+    <div class="hero"><h1>${esc(s.title)}</h1><div class="by"><a href="${artistHref(s.artist)}">${esc(s.artist)}</a>${versions.length ? ` · also aired as “${versions.map(esc).join("”, “")}” version` : ""}</div></div>
+    <section class="tiles" style="margin-top:14px">
+      <a class="tile" href="${link({ view: "plays", p: "all", song: s.id })}"><b>${fmt(st.plays)}</b><span>plays · #${rank} all time</span></a>
+      <div class="tile"><b>${gap}</b><span>average gap between plays</span></div>
+      <div class="tile"><b class="small">${esc(when(st.first_played))}</b><span>first heard</span></div>
+      <div class="tile"><b class="small">${esc(when(st.last_played))}</b><span>last heard</span></div>
+    </section>
+    <section class="grid">
+      <div class="card span2"><h2>Every play <small>date × time of day</small></h2>${dotStrip(plays)}</div>
+      <div class="card"><h2>Time of day <small>Padova time</small></h2>${columns(byHour, { height: 120, labelEvery: d => d.h % 6 === 0, label: d => d.h, half: true, tip: d => `${String(d.h).padStart(2, "0")}:00: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+      <div class="card"><h2>More by ${esc(s.artist)}</h2>${bars(more.map(m => ({ ...m, artist: s.artist })), { name: r => r.title, href: r => songHref(r.id), empty: "Only this one so far." })}</div>
+    </section>
+    <p class="ext" style="margin-top:12px"><a href="${liteHref("/plays?song_id=" + s.id)}">Open in Datasette</a></p>`;
+}
+
+function notFound(msg) {
+  $("#app").innerHTML = `<a class="back" href="#p=${lastPeriod}">← Dashboard</a><p class="empty">${esc(msg)}</p>`;
+}
+
+function route() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  hideTip();
+  if (h.has("view")) viewList(h);
+  else if (h.has("artist")) viewArtist(h.get("artist"));
+  else if (h.has("song")) viewSong(h.get("song"));
+  else viewHome(h.get("p") || lastPeriod);
+  if (!h.has("p") || h.has("view")) scrollTo(0, 0);
+}
+
+// ---------- search ----------
+let sel = -1;
+function search(term) {
+  const box = $("#results");
+  if (term.trim().length < 2) { box.hidden = true; return; }
+  const like = { ":q": "%" + term.trim() + "%" };
+  const artists = q(`select s.artist, count(*) n from plays p join songs s on s.id = p.song_id
+                     where s.artist like :q group by 1 order by n desc limit 5`, like);
+  const songs = q(`select s.id, s.title, s.artist, count(*) n from plays p join songs s on s.id = p.song_id
+                   where s.title like :q or s.artist like :q group by s.id order by n desc limit 8`, like);
+  box.innerHTML = (artists.map(a => `<a href="${artistHref(a.artist)}"><span>${esc(a.artist)}</span><span class="kind">artist · ${a.n}</span></a>`).join("") +
+    songs.map(s => `<a href="${songHref(s.id)}"><span>${esc(s.title)} <span class="kind">${esc(s.artist)}</span></span><span class="kind">${s.n}</span></a>`).join(""))
+    || `<div class="none">Nothing matches “${esc(term)}”.</div>`;
+  sel = -1; box.hidden = false;
+}
+$("#q").addEventListener("input", e => search(e.target.value));
+$("#q").addEventListener("keydown", e => {
+  const links = [...$("#results").querySelectorAll("a")];
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
+    links.forEach((l, i) => l.classList.toggle("sel", i === sel));
+  } else if (e.key === "Enter" && links.length) { location.hash = links[Math.max(0, sel)].getAttribute("href"); closeSearch(); }
+  else if (e.key === "Escape") closeSearch();
+});
+function closeSearch() { $("#results").hidden = true; $("#q").value = ""; $("#q").blur(); }
+document.addEventListener("click", e => { if (!e.target.closest(".search")) $("#results").hidden = true; else if (e.target.closest("#results a")) closeSearch(); });
+
+// ---------- tooltip (hover on desktop, tap on touch) ----------
+const tip = $("#tip");
+function showTip(el, x, y) {
+  tip.innerHTML = el.dataset.tip; tip.classList.add("on");
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.min(innerWidth - r.width - 8, Math.max(8, x - r.width / 2)) + "px";
+  tip.style.top = (y - r.height - 14 < 8 ? y + 18 : y - r.height - 14) + "px";
+}
+function hideTip() { tip.classList.remove("on"); }
+document.addEventListener("pointermove", e => { const el = e.target.closest("[data-tip]"); el ? showTip(el, e.clientX, e.clientY) : hideTip(); });
+document.addEventListener("pointerdown", e => { const el = e.target.closest("[data-tip]"); el ? showTip(el, e.clientX, e.clientY) : hideTip(); });
+addEventListener("scroll", hideTip, { passive: true });
+
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(route, 150); });
+addEventListener("hashchange", route);
+
+// ---------- boot ----------
+(async () => {
+  try {
+    const [SQL, buf] = await Promise.all([
+      initSqlJs({ locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.13.0/dist/${f}` }),
+      fetch(DB_URL).then(r => { if (!r.ok) throw new Error(`${DB_URL}: HTTP ${r.status}`); return r.arrayBuffer(); }),
+    ]);
+    db = new SQL.Database(new Uint8Array(buf));
+    ({ D, A } = one(`select max(date) D, min(date) A from plays`));
+    NEW_FROM = addDays(A, 7);
+    const last = one(`select max(played_at) t from plays`).t;
+    $("#sub").textContent = `Every song played, ${dFmt(A, { day: "numeric", month: "long", year: "numeric" })} onwards · last update ${when(last)} Padova time`;
+    $("#foot").innerHTML = `Source: <a href="https://onlineradiobox.com/it/easyrock/playlist/">onlineradiobox.com</a>, scraped daily. ` +
+      `Browse every row in <a href="${liteHref()}">Datasette</a>. ${fmt(buf.byteLength / 1024 | 0)} KB database.`;
+    route();
+  } catch (err) {
+    $("#app").innerHTML = `<p class="empty">Couldn’t load the archive: ${esc(err.message)}.<br>Serve this folder over HTTP (e.g. <code>python3 -m http.server</code>); browsers block <code>file://</code> fetches.</p>`;
+  }
+})();
+</script>
+</body>
+</html>

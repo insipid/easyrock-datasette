@@ -1,0 +1,15 @@
+title: Radio Easy Rock playlist archive
+description: >-
+  Every track played on Radio Easy Rock (Padova), scraped daily.
+  Times are Padova local time. Start with the views: song_stats,
+  artist_stats, top_songs_this_week, new_this_week, hour_by_weekday.
+source: onlineradiobox.com
+source_url: https://onlineradiobox.com/it/easyrock/playlist/
+databases:
+  playlist:
+    tables:
+      plays:
+        sort_desc: played_at
+        facets: [kind, hour, weekday_name]
+      songs:
+        facets: [lead_artist]
