@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="data:,">
+<script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
 <title>Radio Easy Rock · playlist archive</title>
 <style>
 :root {
@@ -18,8 +19,19 @@
   --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5;
   --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
 }
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --wash: #262624;
+    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-ink: #86b6ef;
+    --seq-0: #262624;
+    /* dark: low counts recede toward the surface, high counts glow */
+    --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf;
+    --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --wash: #262624;
     --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
@@ -52,11 +64,7 @@ h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-2
 .results .kind { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .results .none { padding: 10px 12px; color: var(--muted); }
 
-.tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--wash); border-radius: 12px; width: fit-content; margin-bottom: 6px; }
-.tabs a { padding: 6px 12px; border-radius: 9px; font-size: 14px; color: var(--ink-2); }
-.tabs a:hover { text-decoration: none; color: var(--ink); }
-.tabs a.on { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--ring); }
-.range { color: var(--ink-2); font-size: 13px; margin: 0 0 14px 4px; }
+
 
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px; }
 .tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 12px 16px; display: block; }
@@ -69,10 +77,10 @@ a.tile:hover span::after { color: var(--accent-ink); }
 
 .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media (min-width: 780px) { .grid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: span 2; } }
-.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 14px 16px 12px; min-width: 0; }
-.card h2 { font-size: 15px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.card h2 small { font-weight: 400; color: var(--muted); font-size: 12px; }
-.empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 14px; padding: 16px 18px 14px; min-width: 0; }
+.card h2 { flex-wrap: wrap; font-size: 21px; letter-spacing: -0.01em; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h2 small { font-weight: 400; color: var(--muted); font-size: 14px; letter-spacing: 0; }
+.empty { color: var(--muted); font-size: 16px; padding: 8px 0; }
 
 /* bar table: rank · name · bar · value */
 .bars { list-style: none; margin: 0; padding: 0; }
@@ -86,8 +94,68 @@ a.tile:hover span::after { color: var(--accent-ink); }
 .bars .track { grid-column: 2 / 3; height: 6px; margin-top: 3px; }
 .bars .fill { height: 6px; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
 
+/* headline sentence: "This week, 234 artists played 417 songs 503 times" */
+.lede { font-size: clamp(21px, 3.2vw, 30px); line-height: 1.5; letter-spacing: -0.01em; margin: 8px 0 28px; text-wrap: pretty; }
+.lede a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.lede a:hover { color: var(--accent-ink); text-decoration-color: var(--accent); }
+.lede a b { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.lede .quiet { color: var(--ink-2); }
+
+/* ranked lists without bars: bigger type, top three a step larger */
+.ranked { list-style: none; margin: 0; padding: 0; }
+.ranked li { display: grid; grid-template-columns: 30px minmax(0,1fr) auto; column-gap: 12px; align-items: baseline;
+  padding: 9px 0; border-top: 1px solid var(--grid); font-size: 18.5px; }
+.ranked li:first-child { border-top: 0; }
+.ranked li:nth-child(-n+3) { font-size: 21px; }
+.ranked li:nth-child(-n+3) .title { font-weight: 600; }
+.ranked .rk { color: var(--muted); font-size: 15px; text-align: right; font-variant-numeric: tabular-nums; }
+.ranked li:nth-child(-n+3) .rk { color: var(--ink); font-weight: 600; }
+.ranked .by { font-size: 0.82em; }
+.ranked .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+.ranked .title { color: var(--ink); }
+
+/* period picker: the one deliberately coloured control */
+.pp { position: relative; display: inline-block; }
+.pp-btn { font: inherit; color: var(--accent-ink); background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline dashed; text-decoration-thickness: 2px; text-underline-offset: 6px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.pp-btn::after { content: ""; display: inline-block; width: .32em; height: .32em; margin: 0 .05em .22em .3em;
+  border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.pp-btn:hover { text-decoration-color: var(--accent); }
+.pp-menu { position: absolute; z-index: 6; left: 0; top: calc(100% + 6px); min-width: 230px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.14);
+  font-size: 15px; font-weight: 400; letter-spacing: 0; line-height: 1.3; }
+.lede .pp-menu a, .pp-menu a { text-decoration: none; }
+.pp-menu a { display: flex; justify-content: space-between; gap: 16px; padding: 8px 10px; border-radius: 8px; color: var(--ink); white-space: nowrap; }
+.pp-menu a:hover, .pp-menu a:focus { background: var(--wash); text-decoration: none; outline: none; }
+.pp-menu a[aria-selected="true"] { font-weight: 600; color: var(--accent-ink); }
+.pp-menu small { color: var(--muted); font-size: 13px; font-weight: 400; }
+.hero .pp-btn { font-weight: 400; }
+.pill, .yt { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; padding: 3px 9px; vertical-align: 4px;
+  border: 1px solid var(--ring); border-radius: 999px; font-size: 14px; font-weight: 400; letter-spacing: 0; color: var(--ink-2); white-space: nowrap; }
+.yt svg { flex: none; }
+.pills { display: inline-flex; gap: 6px; vertical-align: 4px; margin-left: 4px; }
+.pills .yt { margin-left: 0; vertical-align: 0; }
+.live { font-size: 13px; padding: 2px 8px; vertical-align: 3px; }
+.live i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill:hover, .yt:hover { color: var(--accent-ink); border-color: var(--accent); text-decoration: none; }
+.filter { color: var(--ink-2); font-size: 15px; margin: 4px 0 16px; }
+
+#theme { position: fixed; right: 12px; bottom: 12px; z-index: 8; width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--ring); background: var(--surface); color: var(--ink-2); font-size: 14px; line-height: 1;
+  cursor: pointer; opacity: .55; transition: opacity .15s; }
+#theme:hover, #theme:focus-visible { opacity: 1; }
+@media (max-width: 600px) { #theme { position: absolute; top: 18px; bottom: auto; right: 16px; } }
+.heat a.c:hover { outline: 2px solid var(--ink); outline-offset: -1px; }
+
+.aside { color: var(--ink-2); font-size: 16px; margin: 14px 2px 0; }
+.aside a { text-decoration: underline; text-underline-offset: 2px; }
+
 .compact { list-style: none; margin: 0; padding: 0; }
-.compact li { padding: 4px 0; border-top: 1px solid var(--grid); }
+.compact li { padding: 8px 0; border-top: 1px solid var(--grid); font-size: 18.5px; }
+.compact .by { font-size: 15.5px; }
+.compact .line { white-space: normal; }
 .compact li:first-child { border-top: 0; }
 @media (min-width: 780px) { .compact.two { columns: 2; column-gap: 28px; } .compact.two li { break-inside: avoid; } .compact.two li:nth-child(6) { border-top: 0; } }
 .card h2 small a { text-decoration: underline; text-underline-offset: 2px; }
@@ -96,11 +164,11 @@ a.tile:hover span::after { color: var(--accent-ink); }
 .count { color: var(--ink-2); font-size: 13px; margin: 0 0 8px; }
 
 /* heatmap */
-.heat { display: grid; grid-template-columns: 34px repeat(24, minmax(0,1fr)); gap: 2px; font-size: 11px; color: var(--muted); }
+.heat { display: grid; grid-template-columns: 40px repeat(24, minmax(0,1fr)); gap: 2px; font-size: 12.5px; color: var(--muted); }
 .heat .c { aspect-ratio: 1 / 1.15; border-radius: 3px; background: var(--seq-0); }
 .heat .rl { align-self: center; }
 .heat .hl { text-align: center; }
-.legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 14px; color: var(--muted); }
 .legend i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
 
 svg { display: block; overflow: visible; }
@@ -131,7 +199,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
 <body>
 <div class="wrap">
   <header>
-    <h1><a href="#">Radio Easy Rock</a><small id="sub">Loading the archive…</small></h1>
+    <h1><a href="#">Radio Easy Rock</a><a class="pill live" href="https://streammo.it/streamings/radio-easy-rock" target="_blank" rel="noopener noreferrer" aria-label="Listen live (opens in a new tab)"><i aria-hidden="true"></i>Live<span aria-hidden="true">↗</span></a><small id="sub">Loading the archive…</small></h1>
     <div class="search">
       <input id="q" type="search" placeholder="Search artists and songs" autocomplete="off" aria-label="Search artists and songs">
       <div class="results" id="results" hidden></div>
@@ -141,6 +209,7 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   <footer id="foot"></footer>
 </div>
 <div id="tip" role="tooltip"></div>
+<button id="theme" type="button"></button>
 
 <script src="vendor/sql.js-1.13.0/sql-wasm.js"></script>
 <script>
@@ -163,8 +232,12 @@ const d2s = d => d.toISOString().slice(0, 10);
 const addDays = (s, n) => d2s(new Date(s2d(s).getTime() + n * 864e5));
 const daysBetween = (a, b) => Math.round((s2d(b) - s2d(a)) / 864e5);
 const dFmt = (s, o = { day: "numeric", month: "short" }) => s2d(s).toLocaleDateString("en-GB", { timeZone: "UTC", ...o });
-const when = ts => `${dFmt(ts.slice(0, 10), { weekday: "short", day: "numeric", month: "short" })}, ${ts.slice(11)}`;
+// one standard: "24 Nov" for days, "24 Nov 12:11" for single plays; year only when it isn't the current one
+const day = ts => dFmt(ts.slice(0, 10), { day: "numeric", month: "short", ...(ts.slice(0, 4) !== D.slice(0, 4) && { year: "numeric" }) });
+const when = ts => `${day(ts)} ${ts.slice(11, 16)}`;
+const hh = h => String(h).padStart(2, "0") + ":00";
 const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WDL = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"];
 
 const artistHref = a => "#artist=" + encodeURIComponent(a);
 const songHref = id => "#song=" + id;
@@ -186,15 +259,32 @@ function periods() {
     all:      { label: "All time",   s: A, e: D },
   };
 }
-function rangeText(p) {
+function rangeShort(p) {
   const s = p.s < A ? A : p.s;
-  const r = s === p.e ? dFmt(s, { weekday: "long", day: "numeric", month: "long" })
-                      : `${dFmt(s)} – ${dFmt(p.e, { day: "numeric", month: "short", year: "numeric" })}`;
-  return p.s < A ? `${r} · archive starts ${dFmt(A)}` : r;
+  if (s > p.e) return "";
+  if (s === p.e) return day(s);
+  return s.slice(5, 7) === p.e.slice(5, 7) && s.slice(0, 4) === p.e.slice(0, 4) ? `${+s.slice(8)}–${day(p.e)}` : `${day(s)} – ${day(p.e)}`;
+}
+const PLABEL = { today: "Today", week: "This week", lastweek: "Last week", month: "This month", year: "This year" };
+function periodPicker(P, cur, params, { lower = false } = {}) {
+  const lbl = k => k === "all" ? `Since ${dFmt(A, { day: "numeric", month: "long" })}` : PLABEL[k];
+  const txt = lower && cur !== "all" ? lbl(cur).toLowerCase() : lbl(cur);
+  return `<span class="pp"><button type="button" class="pp-btn" aria-haspopup="true" aria-expanded="false">${esc(txt)}</button>` +
+    `<span class="pp-menu" hidden>${Object.entries(P).map(([k, v]) =>
+      `<a href="${link({ ...params, p: k })}" aria-selected="${k === cur}">${esc(k === "all" ? "All time" : PLABEL[k])}<small>${esc(rangeShort(v))}</small></a>`).join("")}</span></span>`;
 }
 
 // ---------- components ----------
-// one line per entry: "Title – Artist" (artist smaller), bar underneath
+// ranked list, no bars: "Title – Artist" wraps rather than truncates
+function ranked(rows, { name, by, href, empty = "Nothing here yet." }) {
+  if (!rows.length) return `<div class="empty">${empty}</div>`;
+  return `<ol class="ranked">${rows.map((r, i) => `
+    <li><span class="rk">${i + 1}</span>
+      <span class="nm"><a class="title" href="${href(r)}">${esc(name(r))}</a>${by ? `<span class="by"> – ${by(r)}</span>` : ""}</span>
+      <span class="val">${fmt(r.n)}</span></li>`).join("")}</ol>`;
+}
+
+// (kept for later) one line per entry with a bar underneath
 function bars(rows, { name, by, href, empty = "Nothing here yet." }) {
   if (!rows.length) return `<div class="empty">${empty}</div>`;
   const max = Math.max(...rows.map(r => r.n));
@@ -208,6 +298,12 @@ function bars(rows, { name, by, href, empty = "Nothing here yet." }) {
 const artistLink = r => `<a href="${artistHref(r.artist)}">${esc(r.artist)}</a>`;
 const songLine = r => `<span class="line"><a href="${songHref(r.id)}">${esc(r.title)}</a><span class="by"> – ${artistLink(r)}</span></span>`;
 const link = o => "#" + new URLSearchParams(o).toString();
+// a search, not a specific video: the right one is almost always the top result
+const ytSearch = r => "https://www.youtube.com/results?" + new URLSearchParams({ search_query: `${r.artist} ${r.title}` });
+const geniusSearch = r => "https://genius.com/search?" + new URLSearchParams({ q: `${r.artist} ${r.title}` });
+const MAG = `<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="6.75" cy="6.75" r="4.75" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.4 10.4 14.5 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const searchPill = (href, label, aria) =>
+  `<a class="yt" href="${esc(href)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(aria)} (opens in a new tab)">${MAG}${esc(label)}<span aria-hidden="true">↗</span></a>`;
 
 // sortable table over a JS array; renders 200 rows at a time
 function dataTable(el, cols, rows, { sort, desc = true, page = 200 } = {}) {
@@ -228,10 +324,8 @@ function dataTable(el, cols, rows, { sort, desc = true, page = 200 } = {}) {
   };
   draw();
 }
-const tabsFor = (P, cur, params) => `<nav class="tabs">${Object.entries(P).map(([k, v]) =>
-  `<a href="${link({ ...params, p: k })}" class="${k === cur ? "on" : ""}">${v.label}</a>`).join("")}</nav>`;
 
-function heatmap(cells) {
+function heatmap(cells, href) {
   // average song plays per hour slot, over the days that slot has data for:
   // two Tuesdays in range shouldn't make Tuesday look twice as busy
   const grid = Array.from({ length: 7 }, () => Array(24).fill(null));
@@ -248,7 +342,7 @@ function heatmap(cells) {
     h += `<span class="rl">${WD[wd]}</span>`;
     row.forEach((c, hr) => {
       const slot = `${WD[wd]} ${String(hr).padStart(2, "0")}:00–${String(hr).padStart(2, "0")}:59`;
-      h += c ? `<span class="c" style="background:var(--seq-${step(c.n)})" data-tip="${slot}<br><b>${avg(c.n)}</b> song plays on average${c.days > 1 ? ` (${c.days} days)` : ""}"></span>`
+      h += c ? `<${href ? `a href="${href(wd + 1, hr)}"` : "span"} class="c" style="background:var(--seq-${step(c.n)})" data-tip="${slot}<br><b>${avg(c.n)}</b> song plays on average${c.days > 1 ? ` (${c.days} days)` : ""}"></${href ? "a" : "span"}>`
              : `<span class="c" data-tip="${slot}<br>no data yet"></span>`;
     });
   });
@@ -259,7 +353,7 @@ function heatmap(cells) {
 
 // SVG column chart (daily plays / hourly plays). Single series: no legend, title names it.
 const cardW = (half = false) => { const w = $("#app").clientWidth; return Math.max(240, (half && w >= 780 ? (w - 12) / 2 : w) - 34); };
-function columns(data, { height = 140, labelEvery, label, tip, half = false }) {
+function columns(data, { height = 140, labelEvery, label, tip, half = false, href }) {
   const W = cardW(half), H = height, padL = 28, padB = 18;
   const max = Math.max(1, ...data.map(d => d.n));
   const ticks = niceTicks(max);
@@ -273,7 +367,8 @@ function columns(data, { height = 140, labelEvery, label, tip, half = false }) {
       const rr = Math.min(r, base - top);
       s += `<path fill="var(--accent)" d="M${x},${base}V${top + rr}q0,-${rr} ${rr},-${rr}h${w - 2 * rr}q${rr},0 ${rr},${rr}V${base}Z"/>`;
     }
-    s += `<rect x="${padL + i * bw}" y="0" width="${bw}" height="${base}" fill="transparent" data-tip="${esc(tip(d))}"/>`;
+    const hit = `<rect x="${padL + i * bw}" y="0" width="${bw}" height="${base}" fill="transparent" data-tip="${esc(tip(d))}"/>`;
+    s += href && d.n ? `<a href="${esc(href(d))}" style="cursor:pointer">${hit}</a>` : hit;
     if (labelEvery(d, i)) s += `<text x="${x + w / 2}" y="${H - 4}" text-anchor="middle">${esc(label(d))}</text>`;
   });
   return s + `<line x1="${padL}" x2="${W}" y1="${H - padB}" y2="${H - padB}" stroke="var(--axis)"/></svg>`;
@@ -342,24 +437,24 @@ function viewHome(pk) {
                                  : "No songs heard for the first time in this range.";
   const L = v => link({ view: v, p: lastPeriod });
   const all = (v, n, what) => n > 10 ? `<small><a href="${L(v)}">all ${fmt(n)} ${what}</a></small>` : "";
+  const N = (v, n, one, many) => `<a href="${L(v)}"><b>${fmt(n)}</b> ${n === 1 ? one : many}</a>`;
+  const adHours = one(`select min(hour) lo, max(hour) hi from plays p where kind = 'ad' and ${W}`, prm);
+  const lede = t.plays
+    ? `${periodPicker(P, lastPeriod, {})},<br>${N("artists", t.artists, "artist", "artists")} played ${N("songs", t.songs, "song", "songs")} ${N("plays", t.plays, "time", "times")}` +
+      (newCount ? `<span class="quiet">, including</span> ${N("new", newCount, "new one", "new ones")}` : "") + "."
+    : `${periodPicker(P, lastPeriod, {})}: nothing played yet.`;
 
   $("#app").innerHTML = `
-    ${tabsFor(P, lastPeriod, {})}
-    <p class="range">${esc(rangeText(p))}</p>
-    <section class="tiles">
-      <a class="tile" href="${L("plays")}"><b>${fmt(t.plays)}</b><span>song plays</span></a>
-      <a class="tile" href="${L("songs")}"><b>${fmt(t.songs)}</b><span>different songs</span></a>
-      <a class="tile" href="${L("artists")}"><b>${fmt(t.artists)}</b><span>artists</span></a>
-      <a class="tile" href="${L("new")}"><b>${fmt(newCount)}</b><span>new songs</span></a>
-      <a class="tile" href="${L("ads")}"><b>${fmt(ads)}</b><span>ad breaks</span></a>
-    </section>
+    <p class="lede">${lede}</p>
     <section class="grid">
-      <div class="card"><h2>Top songs ${all("songs", t.songs, "songs")}</h2>${bars(topSongs, { name: r => r.title, by: artistLink, href: r => songHref(r.id) })}</div>
-      <div class="card"><h2>Top artists ${all("artists", t.artists, "artists")}</h2>${bars(topArtists, { name: r => r.artist, href: r => artistHref(r.artist) })}</div>
+      <div class="card"><h2>Top songs ${all("songs", t.songs, "songs")}</h2>${ranked(topSongs, { name: r => r.title, by: artistLink, href: r => songHref(r.id) })}</div>
+      <div class="card"><h2>Top artists ${all("artists", t.artists, "artists")}</h2>${ranked(topArtists, { name: r => r.artist, href: r => artistHref(r.artist) })}</div>
       <div class="card span2"><h2>New this period ${newCount > 10 ? `<small><a href="${L("new")}">all ${fmt(newCount)} new songs</a></small>` : ""}</h2>
         ${newRows.length ? `<ul class="compact two">${newRows.map(r => `<li>${songLine(r)}</li>`).join("")}</ul>` : `<div class="empty">${newNote}</div>`}</div>
-      <div class="card span2"><h2>When songs play <small>average plays per hour, Padova time</small></h2>${heatmap(heat)}</div>
-    </section>`;
+      <div class="card span2"><h2>When songs play <small>average per hour, Padova time · tap a slot for its plays</small></h2>${heatmap(heat, (wd, hr) => link({ view: "plays", p: lastPeriod, wd, hr }))}</div>
+    </section>
+    ${ads ? `<p class="aside">Also: <a href="${L("ads")}">${fmt(ads)} ad break${ads === 1 ? "" : "s"}</a>, all between
+      ${hh(adHours.lo)} and ${hh(adHours.hi + 1)}.</p>` : ""}`;
 }
 
 // full lists behind the tiles: all plays / songs / artists / new songs / ad breaks for a period,
@@ -369,32 +464,41 @@ function viewList(h) {
   const view = h.get("view"), artist = h.get("artist"), song = h.get("song");
   const params = Object.fromEntries(h);
   const prm = { ":s": p.s, ":e": p.e, ":t": NEW_FROM };
-  let W = "p.date between :s and :e", who = "";
-  if (artist) { W += " and s.artist = :a"; prm[":a"] = artist; who = ` · <a href="${artistHref(artist)}">${esc(artist)}</a>`; }
+  // pW: filters on plays only (usable for ad breaks); W adds song/artist filters
+  let pW = "p.date between :s and :e";
+  const bits = [];
+  const date = h.get("date"), wd = h.get("wd"), hr = h.get("hr");
+  if (date) { pW += " and p.date = :d"; prm[":d"] = date; bits.push(day(date)); }
+  if (wd) { pW += " and p.weekday = :wd"; prm[":wd"] = +wd; bits.push(WDL[+wd - 1]); }
+  if (hr) { pW += " and p.hour = :hr"; prm[":hr"] = +hr; bits.push(`${hh(+hr)}–${hh(+hr + 1)}`); }
+  let W = pW;
+  if (artist) { W += " and s.artist = :a"; prm[":a"] = artist; bits.unshift(`<a href="${artistHref(artist)}">${esc(artist)}</a>`); }
   if (song) { W += " and s.id = :id"; prm[":id"] = +song; const sg = one(`select title, artist from songs where id = :id`, { ":id": +song });
-              who = ` · <a href="${songHref(song)}">${esc(sg.title)}</a> – ${esc(sg.artist)}`; }
+              bits.unshift(`<a href="${songHref(song)}">${esc(sg.title)}</a> – ${artistLink(sg)}`); }
+  const who = bits.join(" · ");
   const J = "from plays p join songs s on s.id = p.song_id";
   const songCol = { key: "title", label: "Song", html: r => `<a href="${songHref(r.id)}">${esc(r.title)}</a>` };
   const artistCol = { key: "artist", label: "Artist", html: artistLink };
   const whenCol = (k, label) => ({ key: k, label, html: r => esc(when(r[k])) });
+  const dayCol = (k, label) => ({ key: k, label, html: r => esc(day(r[k])) });
   const V = {
     plays: { title: "Song plays", sort: "played_at",
       rows: () => q(`select p.played_at, s.id, s.title, s.artist ${J} where ${W}`, prm),
       cols: [whenCol("played_at", "When"), songCol, artistCol] },
     songs: { title: "Songs", sort: "n",
       rows: () => q(`select s.id, s.title, s.artist, count(*) n, min(p.played_at) first, max(p.played_at) last ${J} where ${W} group by s.id`, prm),
-      cols: [songCol, artistCol, { key: "n", label: "Plays", num: true }, whenCol("first", "First"), whenCol("last", "Last")] },
+      cols: [songCol, artistCol, { key: "n", label: "Plays", num: true }, dayCol("first", "First"), dayCol("last", "Last")] },
     artists: { title: "Artists", sort: "n",
       rows: () => q(`select s.artist, count(*) n, count(distinct s.id) songs, max(p.played_at) last ${J} where ${W} group by s.artist`, prm),
-      cols: [artistCol, { key: "n", label: "Plays", num: true }, { key: "songs", label: "Songs", num: true }, whenCol("last", "Last heard")] },
+      cols: [artistCol, { key: "n", label: "Plays", num: true }, { key: "songs", label: "Songs", num: true }, dayCol("last", "Last heard")] },
     new: { title: "New songs", sort: "first",
       rows: () => q(`select s.id, s.title, s.artist, f.first, (select count(*) from plays where song_id = s.id) n ${NEWQ}`, prm),
-      cols: [songCol, artistCol, whenCol("first", "First heard"), { key: "n", label: "Plays since", num: true }],
+      cols: [songCol, artistCol, dayCol("first", "First heard"), { key: "n", label: "Plays since", num: true }],
       empty: p.e < NEW_FROM ? `New arrivals are tracked from ${dFmt(NEW_FROM)}, a week into the archive.` : "" },
     ads: { title: "Ad breaks", sort: "date",
       rows: () => q(`select date, count(*) n, group_concat(substr(played_at, 12), '  ') times from
-                     (select * from plays p where kind = 'ad' and ${W.replace(/ and s\..*/, "")} order by played_at) group by date`, prm),
-      cols: [{ key: "date", label: "Day", html: r => esc(dFmt(r.date, { weekday: "short", day: "numeric", month: "short" })) },
+                     (select * from plays p where kind = 'ad' and ${pW} order by played_at) group by date`, prm),
+      cols: [{ key: "date", label: "Day", html: r => esc(day(r.date)) },
              { key: "n", label: "Breaks", num: true }, { key: "times", label: "Times (Padova)" }] },
   }[view];
   if (!V) return notFound("Unknown list.");
@@ -403,9 +507,8 @@ function viewList(h) {
   const cols = V.cols.filter(c => !(song && (c === songCol || c === artistCol)) && !(artist && c === artistCol));
   $("#app").innerHTML = `
     <a class="back" href="#p=${lastPeriod}">← Dashboard</a>
-    <div class="hero"><h1>${V.title}<span class="by" style="font-size:16px;font-weight:400">${who}</span></h1></div>
-    <div style="margin-top:12px">${tabsFor(P, lastPeriod, params)}</div>
-    <p class="range">${esc(rangeText(p))}</p>
+    <div class="hero"><h1>${V.title}, ${periodPicker(P, lastPeriod, params, { lower: true })}</h1></div>
+    ${who ? `<p class="filter">${who}</p>` : `<div style="height:12px"></div>`}
     <div class="card"><p class="count">${fmt(rows.length)} ${rows.length === 1 ? "row" : "rows"}</p><div id="tbl"></div></div>`;
   if (!rows.length) $("#tbl").innerHTML = `<div class="empty">${V.empty || "Nothing in this range."}</div>`;
   else dataTable($("#tbl"), cols, rows, { sort: V.sort, desc: true });
@@ -434,17 +537,17 @@ function viewArtist(name) {
     <section class="tiles" style="margin-top:14px">
       <a class="tile" href="${link({ view: "plays", p: "all", artist: name })}"><b>${fmt(t.plays)}</b><span>plays · #${rank} all time</span></a>
       <a class="tile" href="${link({ view: "songs", p: "all", artist: name })}"><b>${fmt(t.songs)}</b><span>songs</span></a>
-      <div class="tile"><b class="small">${esc(when(t.first))}</b><span>first heard</span></div>
-      <div class="tile"><b class="small">${esc(when(t.last))}</b><span>last heard</span></div>
+      <div class="tile"><b class="small">${esc(day(t.first))}</b><span>first heard</span></div>
+      <div class="tile"><b class="small">${esc(day(t.last))}</b><span>last heard</span></div>
     </section>
     <section class="grid">
-      <div class="card span2"><h2>Plays per day</h2>${columns(days, { labelEvery: (d, i) => i % eD === 0, label: d => dFmt(d.date), tip: d => `${dFmt(d.date, { weekday: "short", day: "numeric", month: "short" })}: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+      <div class="card span2"><h2>Plays per day</h2>${columns(days, { labelEvery: (d, i) => i % eD === 0, label: d => dFmt(d.date), href: d => link({ view: "plays", p: "all", artist: name, date: d.date }), tip: d => `${day(d.date)}: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
       <div class="card span2"><h2>Songs <small>tap a column to sort</small></h2>
         <table class="t" id="songs"><thead><tr><th>Song</th><th class="num" aria-sort="descending">Plays</th><th>First heard</th><th>Last heard</th></tr></thead><tbody>
         ${songs.map(s => `<tr><td><a href="${songHref(s.id)}">${esc(s.title)}</a></td><td class="num">${s.n}</td>
-          <td data-v="${s.first}">${esc(when(s.first))}</td><td data-v="${s.last}">${esc(when(s.last))}</td></tr>`).join("")}
+          <td data-v="${s.first}">${esc(day(s.first))}</td><td data-v="${s.last}">${esc(day(s.last))}</td></tr>`).join("")}
         </tbody></table></div>
-      <div class="card span2"><h2>Time of day <small>Padova time</small></h2>${columns(hours, { height: 120, labelEvery: d => d.h % 3 === 0, label: d => d.h, tip: d => `${String(d.h).padStart(2, "0")}:00–${String(d.h).padStart(2, "0")}:59: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+      <div class="card span2"><h2>Time of day <small>Padova time</small></h2>${columns(hours, { height: 120, labelEvery: d => d.h % 3 === 0, label: d => d.h, href: d => link({ view: "plays", p: "all", artist: name, hr: d.h }), tip: d => `${String(d.h).padStart(2, "0")}:00–${String(d.h).padStart(2, "0")}:59: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
     </section>
     <p class="ext" style="margin-top:12px"><a href="${liteHref("/song_stats?artist=" + encodeURIComponent(name))}">Open in Datasette</a></p>`;
   sortable($("#songs"));
@@ -465,17 +568,17 @@ function viewSong(id) {
 
   $("#app").innerHTML = `
     <a class="back" href="#p=${lastPeriod}">← Dashboard</a>
-    <div class="hero"><h1>${esc(s.title)}</h1><div class="by"><a href="${artistHref(s.artist)}">${esc(s.artist)}</a>${versions.length ? ` · also aired as “${versions.map(esc).join("”, “")}” version` : ""}</div></div>
+    <div class="hero"><h1>${esc(s.title)} <span class="pills">${searchPill(ytSearch(s), "YouTube", "Search YouTube for this song")}${searchPill(geniusSearch(s), "Genius", "Search Genius for the lyrics")}</span></h1><div class="by"><a href="${artistHref(s.artist)}">${esc(s.artist)}</a>${versions.length ? ` · also aired as “${versions.map(esc).join("”, “")}” version` : ""}</div></div>
     <section class="tiles" style="margin-top:14px">
       <a class="tile" href="${link({ view: "plays", p: "all", song: s.id })}"><b>${fmt(st.plays)}</b><span>plays · #${rank} all time</span></a>
       <div class="tile"><b>${gap}</b><span>average gap between plays</span></div>
-      <div class="tile"><b class="small">${esc(when(st.first_played))}</b><span>first heard</span></div>
-      <div class="tile"><b class="small">${esc(when(st.last_played))}</b><span>last heard</span></div>
+      <div class="tile"><b class="small">${esc(day(st.first_played))}</b><span>first heard</span></div>
+      <div class="tile"><b class="small">${esc(day(st.last_played))}</b><span>last heard</span></div>
     </section>
     <section class="grid">
       <div class="card span2"><h2>Every play <small>date × time of day</small></h2>${dotStrip(plays)}</div>
-      <div class="card"><h2>Time of day <small>Padova time</small></h2>${columns(byHour, { height: 120, labelEvery: d => d.h % 6 === 0, label: d => d.h, half: true, tip: d => `${String(d.h).padStart(2, "0")}:00: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
-      <div class="card"><h2>More by ${esc(s.artist)}</h2>${bars(more.map(m => ({ ...m, artist: s.artist })), { name: r => r.title, href: r => songHref(r.id), empty: "Only this one so far." })}</div>
+      <div class="card"><h2>Time of day <small>Padova time</small></h2>${columns(byHour, { height: 120, labelEvery: d => d.h % 6 === 0, label: d => d.h, half: true, href: d => link({ view: "plays", p: "all", song: s.id, hr: d.h }), tip: d => `${String(d.h).padStart(2, "0")}:00: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
+      <div class="card"><h2>More by ${esc(s.artist)}</h2>${ranked(more, { name: r => r.title, href: r => songHref(r.id), empty: "Only this one so far." })}</div>
     </section>
     <p class="ext" style="margin-top:12px"><a href="${liteHref("/plays?song_id=" + s.id)}">Open in Datasette</a></p>`;
 }
@@ -534,6 +637,34 @@ document.addEventListener("pointermove", e => { const el = e.target.closest("[da
 document.addEventListener("pointerdown", e => { const el = e.target.closest("[data-tip]"); el ? showTip(el, e.clientX, e.clientY) : hideTip(); });
 addEventListener("scroll", hideTip, { passive: true });
 
+// period picker: open/close, Esc, click-away
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".pp-btn");
+  document.querySelectorAll(".pp-menu").forEach(m => { if (!btn || m !== btn.nextElementSibling) { m.hidden = true; m.previousElementSibling.setAttribute("aria-expanded", "false"); } });
+  if (btn) { const m = btn.nextElementSibling; m.hidden = !m.hidden; btn.setAttribute("aria-expanded", String(!m.hidden)); if (!m.hidden) m.querySelector("[aria-selected=true]")?.focus(); }
+});
+document.addEventListener("keydown", e => {
+  const menu = e.target.closest(".pp-menu");
+  if (e.key === "Escape") document.querySelectorAll(".pp-menu").forEach(m => { if (!m.hidden) { m.hidden = true; m.previousElementSibling.focus(); } });
+  if (menu && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    e.preventDefault(); const as = [...menu.querySelectorAll("a")], i = as.indexOf(document.activeElement);
+    as[(i + (e.key === "ArrowDown" ? 1 : -1) + as.length) % as.length].focus();
+  }
+});
+
+// theme: auto (follows the OS) → light → dark; remembered per browser
+const THEMES = { auto: ["◐", "Theme: automatic"], light: ["☀", "Theme: light"], dark: ["☾", "Theme: dark"] };
+function setTheme(t) {
+  if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { t === "auto" ? localStorage.removeItem("theme") : localStorage.setItem("theme", t); } catch {}
+  const [icon, label] = THEMES[t]; $("#theme").textContent = icon; $("#theme").title = label; $("#theme").setAttribute("aria-label", label + " (click to change)");
+}
+setTheme(document.documentElement.dataset.theme || "auto");
+$("#theme").addEventListener("click", () => {
+  const order = ["auto", "light", "dark"], cur = document.documentElement.dataset.theme || "auto";
+  setTheme(order[(order.indexOf(cur) + 1) % 3]);
+});
+
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(route, 150); });
 addEventListener("hashchange", route);
 
@@ -548,8 +679,8 @@ addEventListener("hashchange", route);
     ({ D, A } = one(`select max(date) D, min(date) A from plays`));
     NEW_FROM = addDays(A, 7);
     const last = one(`select max(played_at) t from plays`).t;
-    $("#sub").textContent = `Every song played, ${dFmt(A, { day: "numeric", month: "long", year: "numeric" })} onwards · last update ${when(last)} Padova time`;
-    $("#foot").innerHTML = `Source: <a href="https://onlineradiobox.com/it/easyrock/playlist/">onlineradiobox.com</a>, scraped daily. ` +
+    $("#sub").textContent = `Every song played since ${day(A)}`;
+    $("#foot").innerHTML = `Updated ${esc(when(last))} Padova time. Source: <a href="https://onlineradiobox.com/it/easyrock/playlist/">onlineradiobox.com</a>, scraped daily. ` +
       `Browse every row in <a href="${liteHref()}">Datasette</a>. ${fmt(buf.byteLength / 1024 | 0)} KB database.`;
     route();
   } catch (err) {
