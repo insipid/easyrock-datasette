@@ -3,12 +3,14 @@
 <table>
 <tr>
 <td width="55%" valign="top"><a href="https://insipid.github.io/easyrock-datasette/#p=all"><img src="docs/dashboard.png" alt="The dashboard: a sentence summarising the period, top songs and artists, new songs, and a weekday-by-hour heatmap"></a></td>
-<td width="45%" valign="top"><a href="https://insipid.github.io/easyrock-datasette/#song=66"><img src="docs/song.png" alt="A song page in dark mode: play count, average gap between plays, and every play plotted by date and time of day"></a></td>
+<td width="45%" valign="top"><a href="https://insipid.github.io/easyrock-datasette/#song=133"><img src="docs/song.png" alt="The song page for Black Stars by Smashing Pumpkins, in dark mode: play count, average gap between plays, and every play plotted by date and time of day"></a>
+<br><br>
+<a href="https://insipid.github.io/easyrock-datasette/#artist=Smashing%20Pumpkins"><img src="docs/artist.png" alt="The artist page for Smashing Pumpkins: plays per day and a sortable table of their songs"></a></td>
 </tr>
 </table>
 
 **Live at [insipid.github.io/easyrock-datasette](https://insipid.github.io/easyrock-datasette/)**, updated daily.
-Above: the [dashboard](https://insipid.github.io/easyrock-datasette/#p=all) and a [song page](https://insipid.github.io/easyrock-datasette/#song=66) (in dark mode).
+Above: the [dashboard](https://insipid.github.io/easyrock-datasette/#p=all), the song page for [Black Stars](https://insipid.github.io/easyrock-datasette/#song=133) (in dark mode), and the artist page for [Smashing Pumpkins](https://insipid.github.io/easyrock-datasette/#artist=Smashing%20Pumpkins).
 
 A running archive of every song played on [Radio Easy Rock](https://www.radioeasyrock.it/) (Padova),
 scraped daily from [onlineradiobox](https://onlineradiobox.com/it/easyrock/playlist/), with a static dashboard
