@@ -6,7 +6,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="data:,">
-<script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
+<script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  const c = localStorage.getItem("palette"); if (["red", "green", "yellow"].includes(c)) document.documentElement.dataset.palette = c; } catch {}</script>
 <title>Radio Easy Rock · playlist archive</title>
 <style>
 :root {
@@ -42,6 +43,18 @@
     --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf;
     --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
   }
+}
+/* colour palettes (blue is the default above): same lightness steps, different hue */
+:root[data-palette="red"] { --accent: #c74941; --accent-ink: #9e342e; --seq-1: #fad6d1; --seq-2: #f0aea6; --seq-3: #e4857b; --seq-4: #d7584f; --seq-5: #b13f38; --seq-6: #892c27; --seq-7: #621b18; }
+:root[data-palette="green"] { --accent: #018b3e; --accent-ink: #026a2f; --seq-1: #cde8d2; --seq-2: #9dd0a7; --seq-3: #69b87c; --seq-4: #119a48; --seq-5: #007a36; --seq-6: #035b27; --seq-7: #013e18; }
+:root[data-palette="yellow"] { --accent: #906403; --accent-ink: #6d4b02; --seq-1: #f0ddc0; --seq-2: #dfbb84; --seq-3: #ce993d; --seq-4: #a27000; --seq-5: #7f5701; --seq-6: #5d3f02; --seq-7: #3e2900; }
+:root[data-theme="dark"][data-palette="red"] { --accent: #d7584f; --accent-ink: #ea9a91; --seq-1: #76221e; --seq-2: #892c27; --seq-3: #9e342e; --seq-4: #b13f38; --seq-5: #d7584f; --seq-6: #e4857b; --seq-7: #f0aea6; }
+:root[data-theme="dark"][data-palette="green"] { --accent: #119a48; --accent-ink: #85c492; --seq-1: #004c1f; --seq-2: #035b27; --seq-3: #026a2f; --seq-4: #007a36; --seq-5: #119a48; --seq-6: #69b87c; --seq-7: #9dd0a7; }
+:root[data-theme="dark"][data-palette="yellow"] { --accent: #a27000; --accent-ink: #d6aa64; --seq-1: #4d3402; --seq-2: #5d3f02; --seq-3: #6d4b02; --seq-4: #7f5701; --seq-5: #a27000; --seq-6: #ce993d; --seq-7: #dfbb84; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-palette="red"] { --accent: #d7584f; --accent-ink: #ea9a91; --seq-1: #76221e; --seq-2: #892c27; --seq-3: #9e342e; --seq-4: #b13f38; --seq-5: #d7584f; --seq-6: #e4857b; --seq-7: #f0aea6; }
+  :root:not([data-theme="light"])[data-palette="green"] { --accent: #119a48; --accent-ink: #85c492; --seq-1: #004c1f; --seq-2: #035b27; --seq-3: #026a2f; --seq-4: #007a36; --seq-5: #119a48; --seq-6: #69b87c; --seq-7: #9dd0a7; }
+  :root:not([data-theme="light"])[data-palette="yellow"] { --accent: #a27000; --accent-ink: #d6aa64; --seq-1: #4d3402; --seq-2: #5d3f02; --seq-3: #6d4b02; --seq-4: #7f5701; --seq-5: #a27000; --seq-6: #ce993d; --seq-7: #dfbb84; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink);
@@ -101,6 +114,9 @@ a.tile:hover span::after { color: var(--accent-ink); }
 .lede a:hover { color: var(--accent-ink); text-decoration-color: var(--accent); }
 .lede a b { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .lede .quiet { color: var(--ink-2); }
+.lede a.ads { font-size: 15px; letter-spacing: 0; color: var(--muted); text-decoration-thickness: 1px; text-underline-offset: 3px;
+  text-decoration-color: var(--axis); white-space: nowrap; vertical-align: 2px; }
+.lede a.ads:hover { color: var(--accent-ink); text-decoration-color: currentColor; }
 
 /* ranked lists without bars: bigger type, top three a step larger */
 .ranked { list-style: none; margin: 0; padding: 0; }
@@ -114,6 +130,8 @@ a.tile:hover span::after { color: var(--accent-ink); }
 .ranked .by { font-size: 0.82em; }
 .ranked .val { font-variant-numeric: tabular-nums; font-weight: 600; }
 .ranked .title { color: var(--ink); }
+.ranked li.extra { display: none; }
+.ranked.open li.extra { display: grid; }
 
 /* period picker: the one deliberately coloured control */
 .pp { position: relative; display: inline-block; }
@@ -146,11 +164,14 @@ a.tile:hover span::after { color: var(--accent-ink); }
   border: 1px solid var(--ring); background: var(--surface); color: var(--ink-2); font-size: 14px; line-height: 1;
   cursor: pointer; opacity: .55; transition: opacity .15s; }
 #theme:hover, #theme:focus-visible { opacity: 1; }
-@media (max-width: 600px) { #theme { position: absolute; top: 18px; bottom: auto; right: 16px; } }
+#palette { position: fixed; right: 50px; bottom: 12px; z-index: 8; width: 30px; height: 30px; border-radius: 50%; padding: 0;
+  border: 1px solid var(--ring); background: var(--surface); cursor: pointer; opacity: .55; transition: opacity .15s; display: grid; place-items: center; }
+#palette i { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+#palette:hover, #palette:focus-visible { opacity: 1; }
+@media (max-width: 600px) { #theme { position: absolute; top: 18px; bottom: auto; right: 16px; }
+  #palette { position: absolute; top: 18px; bottom: auto; right: 54px; } }
 .heat a.c:hover { outline: 2px solid var(--ink); outline-offset: -1px; }
 
-.aside { color: var(--ink-2); font-size: 16px; margin: 14px 2px 0; }
-.aside a { text-decoration: underline; text-underline-offset: 2px; }
 
 .compact { list-style: none; margin: 0; padding: 0; }
 .compact li { padding: 8px 0; border-top: 1px solid var(--grid); font-size: 18.5px; }
@@ -158,6 +179,9 @@ a.tile:hover span::after { color: var(--accent-ink); }
 .compact .line { white-space: normal; }
 .compact li:first-child { border-top: 0; }
 @media (min-width: 780px) { .compact.two { columns: 2; column-gap: 28px; } .compact.two li { break-inside: avoid; } .compact.two li:nth-child(6) { border-top: 0; } }
+.card h2 a.hlink { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px;
+  text-decoration-color: color-mix(in srgb, var(--ink) 18%, transparent); }
+.card h2 a.hlink:hover { text-decoration-color: color-mix(in srgb, var(--ink) 55%, transparent); }
 .card h2 small a { text-decoration: underline; text-underline-offset: 2px; }
 .more { margin-top: 10px; padding: 7px 14px; border-radius: 9px; border: 1px solid var(--ring); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
 .more:hover { border-color: var(--accent); }
@@ -182,16 +206,30 @@ svg text { fill: var(--muted); font: 11px system-ui, -apple-system, "Segoe UI", 
 .ext { font-size: 13px; color: var(--ink-2); }
 .ext a { text-decoration: underline; text-underline-offset: 2px; }
 
-table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
-table.t th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 4px 6px; border-bottom: 1px solid var(--axis); cursor: pointer; user-select: none; white-space: nowrap; }
-table.t th.num, table.t td.num { text-align: right; font-variant-numeric: tabular-nums; }
-table.t td { padding: 6px; border-bottom: 1px solid var(--grid); }
+/* tables: text columns sit together on the left (the last one takes the slack),
+   counts and dates get their own centred, well-spaced columns on the right */
+table.t { width: 100%; border-collapse: collapse; font-size: 16px; }
+table.t th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--axis); cursor: pointer; user-select: none; white-space: nowrap; }
+table.t td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--grid); }
+table.t .txt { white-space: nowrap; max-width: 16em; overflow: hidden; text-overflow: ellipsis; padding-right: 22px; }
+table.t .fill { width: 100%; max-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+table.t th.fill { max-width: none; }
+table.t .num, table.t .dt { width: 1%; white-space: nowrap; text-align: center; padding-left: 18px; padding-right: 18px; font-variant-numeric: tabular-nums; }
+table.t td.num { font-weight: 650; }
+table.t td.dt { color: var(--ink-2); }
+@media (max-width: 600px) {
+  table.t { font-size: 15px; }
+  table.t .txt { max-width: 10em; padding-right: 12px; }
+  table.t .fill { width: auto; max-width: 9em; padding-right: 12px; }
+  #tbl, #songs-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.t .num, table.t .dt { padding-left: 8px; padding-right: 8px; }
+}
 table.t th[aria-sort]::after { content: " ↓"; } table.t th[aria-sort="ascending"]::after { content: " ↑"; }
 
 #tip { position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--surface);
   padding: 6px 9px; border-radius: 8px; font-size: 12.5px; line-height: 1.35; max-width: 260px; opacity: 0; transition: opacity .08s; }
 #tip.on { opacity: 1; }
-footer { margin-top: 24px; color: var(--muted); font-size: 12.5px; }
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; line-height: 1.7; }
 footer a { text-decoration: underline; text-underline-offset: 2px; }
 .loading { padding: 60px 0; color: var(--ink-2); }
 </style>
@@ -209,13 +247,14 @@ footer a { text-decoration: underline; text-underline-offset: 2px; }
   <footer id="foot"></footer>
 </div>
 <div id="tip" role="tooltip"></div>
+<button id="palette" type="button"><i></i></button>
 <button id="theme" type="button"></button>
 
 <script src="vendor/sql.js-1.13.0/sql-wasm.js"></script>
 <script>
 "use strict";
 const DB_URL = "playlist.db";
-let db, D, A, NEW_FROM, lastPeriod = "week";
+let db, D, A, NEW_FROM, FOOT, lastPeriod = "week";
 
 // ---------- helpers ----------
 const $ = s => document.querySelector(s);
@@ -226,6 +265,9 @@ function q(sql, params = {}) {
   const out = []; while (st.step()) out.push(st.getAsObject()); st.free(); return out;
 }
 const one = (sql, p) => q(sql, p)[0] || {};
+// the query behind the current page, for the footer's "these rows" Datasette link
+let pageQuery = null;
+const qPage = (sql, params, label) => { pageQuery = { sql, params, label }; return q(sql, params); };
 
 const s2d = s => new Date(s + "T00:00:00Z");
 const d2s = d => d.toISOString().slice(0, 10);
@@ -241,6 +283,12 @@ const WDL = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Satur
 
 const artistHref = a => "#artist=" + encodeURIComponent(a);
 const songHref = id => "#song=" + id;
+function liteQuery({ sql, params }) {
+  const qs = new URLSearchParams({ sql: sql.replace(/\n\s+/g, "\n  ").trim() });
+  // Datasette fills :name placeholders from same-named URL parameters; pass only the ones used
+  for (const [k, v] of Object.entries(params)) if (new RegExp(k + "\\b").test(sql)) qs.set(k.slice(1), v);
+  return liteHref("?" + qs.toString());
+}
 function liteHref(path = "") {
   const base = new URL(".", location.href).href;
   return "https://lite.datasette.io/?url=" + encodeURIComponent(base + DB_URL) +
@@ -279,9 +327,9 @@ function periodPicker(P, cur, params, { lower = false } = {}) {
 function ranked(rows, { name, by, href, empty = "Nothing here yet." }) {
   if (!rows.length) return `<div class="empty">${empty}</div>`;
   return `<ol class="ranked">${rows.map((r, i) => `
-    <li><span class="rk">${i + 1}</span>
+    <li${i >= 10 ? ' class="extra"' : ""}><span class="rk">${i + 1}</span>
       <span class="nm"><a class="title" href="${href(r)}">${esc(name(r))}</a>${by ? `<span class="by"> – ${by(r)}</span>` : ""}</span>
-      <span class="val">${fmt(r.n)}</span></li>`).join("")}</ol>`;
+      <span class="val">${fmt(r.n)}</span></li>`).join("")}</ol>${rows.length > 10 ? `<button type="button" class="more ten">Show ${rows.length - 10} more</button>` : ""}`;
 }
 
 // (kept for later) one line per entry with a bar underneath
@@ -308,17 +356,19 @@ const searchPill = (href, label, aria) =>
 // sortable table over a JS array; renders 200 rows at a time
 function dataTable(el, cols, rows, { sort, desc = true, page = 200 } = {}) {
   let key = sort ?? cols[0].key, dir = desc ? -1 : 1, shown = page;
+  // the last text column absorbs spare width, so text columns stay together
+  const lastText = cols.map(c => !c.num && !c.dt).lastIndexOf(true);
+  const cls = (c, i) => c.num ? "num" : c.dt ? "dt" : i === lastText ? "fill" : "txt";
   const draw = () => {
     const sorted = [...rows].sort((a, b) => {
       const va = a[key], vb = b[key];
       return (typeof va === "number" ? va - vb : String(va).localeCompare(String(vb))) * dir;
     });
-    el.innerHTML = `<table class="t"><thead><tr>${cols.map(c =>
-        `<th data-k="${c.key}" class="${c.num ? "num" : ""}"${c.key === key ? ` aria-sort="${dir < 0 ? "descending" : "ascending"}"` : ""}>${c.label}</th>`).join("")}</tr></thead>
-      <tbody>${sorted.slice(0, shown).map(r => `<tr>${cols.map(c => `<td class="${c.num ? "num" : ""}">${c.html ? c.html(r) : esc(r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>
+    el.innerHTML = `<table class="t"><thead><tr>${cols.map((c, i) => `<th data-k="${c.key}" class="${cls(c, i)}"${c.key === key ? ` aria-sort="${dir < 0 ? "descending" : "ascending"}"` : ""}>${c.label}</th>`).join("")}</tr></thead>
+      <tbody>${sorted.slice(0, shown).map(r => `<tr>${cols.map((c, i) => `<td class="${cls(c, i)}">${c.html ? c.html(r) : esc(r[c.key])}</td>`).join("")}</tr>`).join("")}</tbody></table>
       ${sorted.length > shown ? `<button class="more">Show more (${fmt(sorted.length - shown)} left)</button>` : ""}`;
     el.querySelectorAll("th").forEach(th => th.onclick = () => {
-      const k = th.dataset.k; dir = k === key ? -dir : (cols.find(c => c.key === k).num ? -1 : 1); key = k; draw();
+      const k = th.dataset.k; dir = k === key ? -dir : (cols.find(c => c.key === k).num || cols.find(c => c.key === k).dt ? -1 : 1); key = k; draw();
     });
     const m = el.querySelector(".more"); if (m) m.onclick = () => { shown += page; draw(); };
   };
@@ -424,10 +474,12 @@ function viewHome(pk) {
   const t = one(`select count(*) plays, count(distinct p.song_id) songs, count(distinct s.artist) artists
                  from plays p join songs s on s.id = p.song_id where ${W}`, prm);
   const ads = one(`select count(*) n from plays p where kind = 'ad' and ${W}`, prm).n;
-  const topSongs = q(`select s.id, s.artist, s.title, count(*) n from plays p join songs s on s.id = p.song_id
-                      where ${W} group by s.id order by n desc, max(p.played_at) desc limit 10`, prm);
+  const TOP = `select s.id, s.artist, s.title, count(*) n from plays p join songs s on s.id = p.song_id
+                      where ${W} group by s.id order by n desc, max(p.played_at) desc`;
+  const topSongs = q(TOP + " limit 20", prm);
+  pageQuery = { sql: TOP, params: prm, label: "this period's songs" };
   const topArtists = q(`select s.artist, count(*) n from plays p join songs s on s.id = p.song_id
-                        where ${W} group by s.artist order by n desc, max(p.played_at) desc limit 10`, prm);
+                        where ${W} group by s.artist order by n desc, max(p.played_at) desc limit 20`, prm);
   // "new" only means something once the archive has a week of history behind it
   const nprm = { ...prm, ":t": NEW_FROM };
   const newCount = one(`select count(*) n ${NEWQ}`, nprm).n;
@@ -438,23 +490,22 @@ function viewHome(pk) {
   const L = v => link({ view: v, p: lastPeriod });
   const all = (v, n, what) => n > 10 ? `<small><a href="${L(v)}">all ${fmt(n)} ${what}</a></small>` : "";
   const N = (v, n, one, many) => `<a href="${L(v)}"><b>${fmt(n)}</b> ${n === 1 ? one : many}</a>`;
-  const adHours = one(`select min(hour) lo, max(hour) hi from plays p where kind = 'ad' and ${W}`, prm);
   const lede = t.plays
     ? `${periodPicker(P, lastPeriod, {})},<br>${N("artists", t.artists, "artist", "artists")} played ${N("songs", t.songs, "song", "songs")} ${N("plays", t.plays, "time", "times")}` +
-      (newCount ? `<span class="quiet">, including</span> ${N("new", newCount, "new one", "new ones")}` : "") + "."
+      (newCount ? `<span class="quiet">, including</span> ${N("new", newCount, "new one", "new ones")}` : "") + "." +
+      (ads ? ` <a class="ads" href="${L("ads")}">(${fmt(ads)} ad break${ads === 1 ? "" : "s"})</a>` : "")
     : `${periodPicker(P, lastPeriod, {})}: nothing played yet.`;
 
   $("#app").innerHTML = `
     <p class="lede">${lede}</p>
     <section class="grid">
-      <div class="card"><h2>Top songs ${all("songs", t.songs, "songs")}</h2>${ranked(topSongs, { name: r => r.title, by: artistLink, href: r => songHref(r.id) })}</div>
-      <div class="card"><h2>Top artists ${all("artists", t.artists, "artists")}</h2>${ranked(topArtists, { name: r => r.artist, href: r => artistHref(r.artist) })}</div>
-      <div class="card span2"><h2>New this period ${newCount > 10 ? `<small><a href="${L("new")}">all ${fmt(newCount)} new songs</a></small>` : ""}</h2>
+      <div class="card"><h2><a class="hlink" href="${L("songs")}">Top songs</a> ${all("songs", t.songs, "songs")}</h2>${ranked(topSongs, { name: r => r.title, by: artistLink, href: r => songHref(r.id) })}</div>
+      <div class="card"><h2><a class="hlink" href="${L("artists")}">Top artists</a> ${all("artists", t.artists, "artists")}</h2>${ranked(topArtists, { name: r => r.artist, href: r => artistHref(r.artist) })}</div>
+      <div class="card span2"><h2><a class="hlink" href="${L("new")}">New this period</a> ${newCount > 10 ? `<small><a href="${L("new")}">all ${fmt(newCount)} new songs</a></small>` : ""}</h2>
         ${newRows.length ? `<ul class="compact two">${newRows.map(r => `<li>${songLine(r)}</li>`).join("")}</ul>` : `<div class="empty">${newNote}</div>`}</div>
       <div class="card span2"><h2>When songs play <small>average per hour, Padova time · tap a slot for its plays</small></h2>${heatmap(heat, (wd, hr) => link({ view: "plays", p: lastPeriod, wd, hr }))}</div>
     </section>
-    ${ads ? `<p class="aside">Also: <a href="${L("ads")}">${fmt(ads)} ad break${ads === 1 ? "" : "s"}</a>, all between
-      ${hh(adHours.lo)} and ${hh(adHours.hi + 1)}.</p>` : ""}`;
+`;
 }
 
 // full lists behind the tiles: all plays / songs / artists / new songs / ad breaks for a period,
@@ -479,30 +530,31 @@ function viewList(h) {
   const J = "from plays p join songs s on s.id = p.song_id";
   const songCol = { key: "title", label: "Song", html: r => `<a href="${songHref(r.id)}">${esc(r.title)}</a>` };
   const artistCol = { key: "artist", label: "Artist", html: artistLink };
-  const whenCol = (k, label) => ({ key: k, label, html: r => esc(when(r[k])) });
-  const dayCol = (k, label) => ({ key: k, label, html: r => esc(day(r[k])) });
+  const whenCol = (k, label) => ({ key: k, label, dt: true, html: r => esc(when(r[k])) });
+  const dayCol = (k, label) => ({ key: k, label, dt: true, html: r => esc(day(r[k])) });
   const V = {
     plays: { title: "Song plays", sort: "played_at",
-      rows: () => q(`select p.played_at, s.id, s.title, s.artist ${J} where ${W}`, prm),
+      rows: () => qPage(`select p.played_at, s.id, s.title, s.artist ${J} where ${W}`, prm),
       cols: [whenCol("played_at", "When"), songCol, artistCol] },
     songs: { title: "Songs", sort: "n",
-      rows: () => q(`select s.id, s.title, s.artist, count(*) n, min(p.played_at) first, max(p.played_at) last ${J} where ${W} group by s.id`, prm),
+      rows: () => qPage(`select s.id, s.title, s.artist, count(*) n, min(p.played_at) first, max(p.played_at) last ${J} where ${W} group by s.id`, prm),
       cols: [songCol, artistCol, { key: "n", label: "Plays", num: true }, dayCol("first", "First"), dayCol("last", "Last")] },
     artists: { title: "Artists", sort: "n",
-      rows: () => q(`select s.artist, count(*) n, count(distinct s.id) songs, max(p.played_at) last ${J} where ${W} group by s.artist`, prm),
+      rows: () => qPage(`select s.artist, count(*) n, count(distinct s.id) songs, max(p.played_at) last ${J} where ${W} group by s.artist`, prm),
       cols: [artistCol, { key: "n", label: "Plays", num: true }, { key: "songs", label: "Songs", num: true }, dayCol("last", "Last heard")] },
     new: { title: "New songs", sort: "first",
-      rows: () => q(`select s.id, s.title, s.artist, f.first, (select count(*) from plays where song_id = s.id) n ${NEWQ}`, prm),
+      rows: () => qPage(`select s.id, s.title, s.artist, f.first, (select count(*) from plays where song_id = s.id) n ${NEWQ}`, prm),
       cols: [songCol, artistCol, dayCol("first", "First heard"), { key: "n", label: "Plays since", num: true }],
       empty: p.e < NEW_FROM ? `New arrivals are tracked from ${dFmt(NEW_FROM)}, a week into the archive.` : "" },
     ads: { title: "Ad breaks", sort: "date",
-      rows: () => q(`select date, count(*) n, group_concat(substr(played_at, 12), '  ') times from
+      rows: () => qPage(`select date, count(*) n, group_concat(substr(played_at, 12), '  ') times from
                      (select * from plays p where kind = 'ad' and ${pW} order by played_at) group by date`, prm),
-      cols: [{ key: "date", label: "Day", html: r => esc(day(r.date)) },
+      cols: [{ key: "date", label: "Day", dt: true, html: r => esc(day(r.date)) },
              { key: "n", label: "Breaks", num: true }, { key: "times", label: "Times (Padova)" }] },
   }[view];
   if (!V) return notFound("Unknown list.");
   const rows = V.rows();
+  pageQuery.sql += `\norder by ${V.sort} desc`; pageQuery.label = "these rows";
   // narrowed to one song/artist: don't repeat it in every row
   const cols = V.cols.filter(c => !(song && (c === songCol || c === artistCol)) && !(artist && c === artistCol));
   $("#app").innerHTML = `
@@ -523,8 +575,8 @@ function viewArtist(name) {
   const days = []; for (let ds = A; ds <= D; ds = addDays(ds, 1)) days.push({ date: ds, n: byDay[ds] || 0 });
   const byHour = Object.fromEntries(q(`select p.hour, count(*) n from plays p join songs s on s.id = p.song_id where s.artist = :a group by 1`, a).map(r => [r.hour, r.n]));
   const hours = Array.from({ length: 24 }, (_, h) => ({ h, n: byHour[h] || 0 }));
-  const songs = q(`select s.id, s.title, count(*) n, min(p.played_at) first, max(p.played_at) last
-                   from plays p join songs s on s.id = p.song_id where s.artist = :a group by s.id order by n desc, last desc`, a);
+  const songs = qPage(`select s.id, s.title, count(*) n, min(p.played_at) first, max(p.played_at) last
+                   from plays p join songs s on s.id = p.song_id where s.artist = :a group by s.id order by n desc, last desc`, a, "these songs");
   const rank = one(`select count(*) + 1 r from (select s.artist, count(*) n from plays p join songs s on s.id = p.song_id group by 1)
                     where n > :n`, { ":n": t.plays }).r;
   const others = q(`select distinct artist from songs where lead_artist = (select lead_artist from songs where artist = :a limit 1) and artist != :a`, a);
@@ -543,13 +595,12 @@ function viewArtist(name) {
     <section class="grid">
       <div class="card span2"><h2>Plays per day</h2>${columns(days, { labelEvery: (d, i) => i % eD === 0, label: d => dFmt(d.date), href: d => link({ view: "plays", p: "all", artist: name, date: d.date }), tip: d => `${day(d.date)}: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
       <div class="card span2"><h2>Songs <small>tap a column to sort</small></h2>
-        <table class="t" id="songs"><thead><tr><th>Song</th><th class="num" aria-sort="descending">Plays</th><th>First heard</th><th>Last heard</th></tr></thead><tbody>
-        ${songs.map(s => `<tr><td><a href="${songHref(s.id)}">${esc(s.title)}</a></td><td class="num">${s.n}</td>
-          <td data-v="${s.first}">${esc(day(s.first))}</td><td data-v="${s.last}">${esc(day(s.last))}</td></tr>`).join("")}
+        <table class="t" id="songs"><thead><tr><th class="fill">Song</th><th class="num" aria-sort="descending">Plays</th><th class="dt">First heard</th><th class="dt">Last heard</th></tr></thead><tbody>
+        ${songs.map(s => `<tr><td class="fill"><a href="${songHref(s.id)}">${esc(s.title)}</a></td><td class="num">${s.n}</td>
+          <td class="dt" data-v="${s.first}">${esc(day(s.first))}</td><td class="dt" data-v="${s.last}">${esc(day(s.last))}</td></tr>`).join("")}
         </tbody></table></div>
       <div class="card span2"><h2>Time of day <small>Padova time</small></h2>${columns(hours, { height: 120, labelEvery: d => d.h % 3 === 0, label: d => d.h, href: d => link({ view: "plays", p: "all", artist: name, hr: d.h }), tip: d => `${String(d.h).padStart(2, "0")}:00–${String(d.h).padStart(2, "0")}:59: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
-    </section>
-    <p class="ext" style="margin-top:12px"><a href="${liteHref("/song_stats?artist=" + encodeURIComponent(name))}">Open in Datasette</a></p>`;
+    </section>`;
   sortable($("#songs"));
 }
 
@@ -557,7 +608,7 @@ function viewSong(id) {
   const s = one(`select * from songs where id = :id`, { ":id": +id });
   if (!s.id) return notFound("No such song.");
   const st = one(`select * from song_stats where song_id = :id`, { ":id": s.id });
-  const plays = q(`select played_at, version from plays where song_id = :id order by played_at`, { ":id": s.id });
+  const plays = qPage(`select played_at, version from plays where song_id = :id order by played_at`, { ":id": s.id }, "every play");
   const rank = one(`select count(*) + 1 r from song_stats where plays > :n`, { ":n": st.plays }).r;
   const byHour = Array.from({ length: 24 }, (_, h) => ({ h, n: 0 }));
   plays.forEach(p => byHour[+p.played_at.slice(11, 13)].n++);
@@ -579,21 +630,27 @@ function viewSong(id) {
       <div class="card span2"><h2>Every play <small>date × time of day</small></h2>${dotStrip(plays)}</div>
       <div class="card"><h2>Time of day <small>Padova time</small></h2>${columns(byHour, { height: 120, labelEvery: d => d.h % 6 === 0, label: d => d.h, half: true, href: d => link({ view: "plays", p: "all", song: s.id, hr: d.h }), tip: d => `${String(d.h).padStart(2, "0")}:00: ${d.n} play${d.n === 1 ? "" : "s"}` })}</div>
       <div class="card"><h2>More by ${esc(s.artist)}</h2>${ranked(more, { name: r => r.title, href: r => songHref(r.id), empty: "Only this one so far." })}</div>
-    </section>
-    <p class="ext" style="margin-top:12px"><a href="${liteHref("/plays?song_id=" + s.id)}">Open in Datasette</a></p>`;
+    </section>`;
 }
 
 function notFound(msg) {
   $("#app").innerHTML = `<a class="back" href="#p=${lastPeriod}">← Dashboard</a><p class="empty">${esc(msg)}</p>`;
 }
 
+function renderFoot() {
+  const these = pageQuery ? `<a href="${liteQuery(pageQuery)}">${esc(pageQuery.label)}</a> · ` : "";
+  $("#foot").innerHTML = `Open in Datasette: ${these}<a href="${liteHref()}">all rows</a>.<br>` +
+    `Updated ${esc(when(FOOT.last))} Padova time · source <a href="https://onlineradiobox.com/it/easyrock/playlist/">onlineradiobox.com</a>, scraped daily · ${fmt(FOOT.kb)} KB database.`;
+}
+
 function route() {
   const h = new URLSearchParams(location.hash.slice(1));
-  hideTip();
+  hideTip(); pageQuery = null;
   if (h.has("view")) viewList(h);
   else if (h.has("artist")) viewArtist(h.get("artist"));
   else if (h.has("song")) viewSong(h.get("song"));
   else viewHome(h.get("p") || lastPeriod);
+  renderFoot();
   if (!h.has("p") || h.has("view")) scrollTo(0, 0);
 }
 
@@ -637,6 +694,13 @@ document.addEventListener("pointermove", e => { const el = e.target.closest("[da
 document.addEventListener("pointerdown", e => { const el = e.target.closest("[data-tip]"); el ? showTip(el, e.clientX, e.clientY) : hideTip(); });
 addEventListener("scroll", hideTip, { passive: true });
 
+// top lists: reveal ranks 11-20, and fold them away again
+document.addEventListener("click", e => {
+  const b = e.target.closest(".more.ten"); if (!b) return;
+  const ol = b.previousElementSibling, open = ol.classList.toggle("open");
+  b.textContent = open ? "Show fewer" : `Show ${ol.querySelectorAll(".extra").length} more`;
+});
+
 // period picker: open/close, Esc, click-away
 document.addEventListener("click", e => {
   const btn = e.target.closest(".pp-btn");
@@ -665,6 +729,22 @@ $("#theme").addEventListener("click", () => {
   setTheme(order[(order.indexOf(cur) + 1) % 3]);
 });
 
+// colour palette: blue → red → green → yellow; remembered per browser
+const PALETTES = ["blue", "red", "green", "yellow"];
+function setPalette(c) {
+  if (c === "blue") delete document.documentElement.dataset.palette; else document.documentElement.dataset.palette = c;
+  try { c === "blue" ? localStorage.removeItem("palette") : localStorage.setItem("palette", c); } catch {}
+  const next = PALETTES[(PALETTES.indexOf(c) + 1) % PALETTES.length];
+  const cap = w => w[0].toUpperCase() + w.slice(1);
+  $("#palette").title = `Colour: ${cap(c)} (click for ${cap(next)})`;
+  $("#palette").setAttribute("aria-label", $("#palette").title);
+}
+setPalette(document.documentElement.dataset.palette || "blue");
+$("#palette").addEventListener("click", () => {
+  const cur = document.documentElement.dataset.palette || "blue";
+  setPalette(PALETTES[(PALETTES.indexOf(cur) + 1) % PALETTES.length]);
+});
+
 let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(route, 150); });
 addEventListener("hashchange", route);
 
@@ -680,8 +760,7 @@ addEventListener("hashchange", route);
     NEW_FROM = addDays(A, 7);
     const last = one(`select max(played_at) t from plays`).t;
     $("#sub").textContent = `Every song played since ${day(A)}`;
-    $("#foot").innerHTML = `Updated ${esc(when(last))} Padova time. Source: <a href="https://onlineradiobox.com/it/easyrock/playlist/">onlineradiobox.com</a>, scraped daily. ` +
-      `Browse every row in <a href="${liteHref()}">Datasette</a>. ${fmt(buf.byteLength / 1024 | 0)} KB database.`;
+    FOOT = { last, kb: buf.byteLength / 1024 | 0 };
     route();
   } catch (err) {
     $("#app").innerHTML = `<p class="empty">Couldn’t load the archive: ${esc(err.message)}.<br>Serve this folder over HTTP (e.g. <code>python3 -m http.server</code>); browsers block <code>file://</code> fetches.</p>`;
