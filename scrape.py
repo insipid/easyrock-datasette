@@ -9,6 +9,12 @@ into data/days/YYYY-MM-DD.json, one file per station-day.
 Raw only: no normalising, no filtering of station idents. That is build.py's
 job, so rule changes can be replayed over the whole history.
 
+Timezones: onlineradiobox renders times (and day boundaries) in the *visitor's*
+timezone, guessed from their IP: London from a UK Mac, Denver or New York from
+a GitHub runner. The page names the zone it used (window.syncTimeTZLoc), so every
+play is converted from that zone to Padova time before it's stored. Files are
+Padova days with Padova times, whoever runs the scrape and wherever.
+
 Usage:
   ./scrape.py                 # fetch today + previous 6 days, merge
   ./scrape.py --pages 1 2     # just those pages (n = days before today)
@@ -37,6 +43,7 @@ TIME_RE = re.compile(r"\d{2}:\d{2}")
 # only tab that isn't a link.
 TAB_RE = re.compile(r"(?:Lun|Mar|Mer|Merc|Gio|Ven|Sab|Dom)\.?\s+(\d{1,2})\.(\d{1,2})")
 TRACK_RE = re.compile(r"/track/(\d+)")
+PAGE_TZ_RE = re.compile(r'syncTimeTZLoc\s*=\s*"([^"]+)"')
 
 
 def fetch(n: int) -> str:
@@ -68,7 +75,12 @@ def page_date(soup: BeautifulSoup, today: date) -> date:
     return d
 
 
-def parse(html: str, today: date) -> tuple[date, list[dict]]:
+def parse(html: str, today: date) -> tuple[date, str, list[dict]]:
+    m = PAGE_TZ_RE.search(html)
+    if not m:
+        raise ValueError("page doesn't say which timezone its times are in (syncTimeTZLoc); refusing to guess")
+    zone = m[1]
+    ZoneInfo(zone)  # fail loudly on a zone name we can't use
     soup = BeautifulSoup(html, "html.parser")
     d = page_date(soup, today)
     plays = []
@@ -88,7 +100,18 @@ def parse(html: str, today: date) -> tuple[date, list[dict]]:
         })
     if not plays:
         raise ValueError(f"no timed rows found for {d}; markup changed?")
-    return d, plays
+    return d, zone, plays
+
+
+def to_padova(d: date, zone: str, plays: list[dict]) -> dict[date, list[dict]]:
+    """Re-express a page's plays in Padova time, split into Padova days.
+    A visitor's day straddles two Padova days unless the visitor is in Italy."""
+    tz, out = ZoneInfo(zone), {}
+    for p in plays:
+        h, m = map(int, p["time"].split(":"))
+        local = datetime(d.year, d.month, d.day, h, m, tzinfo=tz).astimezone(PADOVA)
+        out.setdefault(local.date(), []).append({**p, "time": local.strftime("%H:%M")})
+    return out
 
 
 def merge(old: list[dict], new: list[dict]) -> list[dict]:
@@ -144,8 +167,9 @@ def main() -> int:
         if i:
             time.sleep(2)  # be gentle
         try:
-            d, plays = parse(get(), today)
-            print(f"{label} → {save(d, plays, args.dry_run)}", file=sys.stderr)
+            d, zone, plays = parse(get(), today)
+            for pd, pp in sorted(to_padova(d, zone, plays).items()):
+                print(f"{label} ({d}, {zone}) → {save(pd, pp, args.dry_run)}", file=sys.stderr)
         except Exception as e:  # keep going; one bad page shouldn't sink the rest
             failed += 1
             print(f"{label}: FAILED {type(e).__name__}: {e}", file=sys.stderr)
