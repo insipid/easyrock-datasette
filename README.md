@@ -1,5 +1,15 @@
 # easyrock-datasette
 
+<table>
+<tr>
+<td width="55%" valign="top"><a href="https://insipid.github.io/easyrock-datasette/#p=all"><img src="docs/dashboard.png" alt="The dashboard: a sentence summarising the period, top songs and artists, new songs, and a weekday-by-hour heatmap"></a></td>
+<td width="45%" valign="top"><a href="https://insipid.github.io/easyrock-datasette/#song=66"><img src="docs/song.png" alt="A song page in dark mode: play count, average gap between plays, and every play plotted by date and time of day"></a></td>
+</tr>
+</table>
+
+**Live at [insipid.github.io/easyrock-datasette](https://insipid.github.io/easyrock-datasette/)**, updated daily.
+Above: the [dashboard](https://insipid.github.io/easyrock-datasette/#p=all) and a [song page](https://insipid.github.io/easyrock-datasette/#song=66) (in dark mode).
+
 A running archive of every song played on [Radio Easy Rock](https://www.radioeasyrock.it/) (Padova),
 scraped daily from [onlineradiobox](https://onlineradiobox.com/it/easyrock/playlist/), with a static dashboard
 and [Datasette Lite](https://lite.datasette.io/) on GitHub Pages.
@@ -14,6 +24,7 @@ and [Datasette Lite](https://lite.datasette.io/) on GitHub Pages.
 | `overrides.csv` | `from,to` name fixes. A whole name/title replaces that one; a single word (e.g. `MJ`) replaces it everywhere. |
 | `index.html` | The dashboard. Loads `playlist.db` in the browser with vendored [sql.js](https://github.com/sql-js/sql.js). |
 | `metadata.yml` | Title/source for Datasette Lite. |
+| `docs/` | README screenshots. |
 
 `playlist.db` is never committed; it's rebuilt on every run.
 
